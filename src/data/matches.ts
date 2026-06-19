@@ -1,0 +1,87 @@
+import type { Match } from "../types/prode";
+
+export const matches: Match[] = [
+  { id: "A1", group: "A", homeTeam: "México", awayTeam: "Sudáfrica" },
+  { id: "A2", group: "A", homeTeam: "Corea", awayTeam: "Chequia" },
+  { id: "A3", group: "A", homeTeam: "Chequia", awayTeam: "Sudáfrica" },
+  { id: "A4", group: "A", homeTeam: "México", awayTeam: "Corea" },
+  { id: "A5", group: "A", homeTeam: "Chequia", awayTeam: "México" },
+  { id: "A6", group: "A", homeTeam: "Sudáfrica", awayTeam: "Corea" },
+
+  { id: "B1", group: "B", homeTeam: "Canadá", awayTeam: "Bosnia" },
+  { id: "B2", group: "B", homeTeam: "Catar", awayTeam: "Suiza" },
+  { id: "B3", group: "B", homeTeam: "Suiza", awayTeam: "Bosnia" },
+  { id: "B4", group: "B", homeTeam: "Canadá", awayTeam: "Catar" },
+  { id: "B5", group: "B", homeTeam: "Suiza", awayTeam: "Canadá" },
+  { id: "B6", group: "B", homeTeam: "Bosnia", awayTeam: "Catar" },
+
+  { id: "C1", group: "C", homeTeam: "Brasil", awayTeam: "Marruecos" },
+  { id: "C2", group: "C", homeTeam: "Haití", awayTeam: "Escocia" },
+  { id: "C3", group: "C", homeTeam: "Escocia", awayTeam: "Marruecos" },
+  { id: "C4", group: "C", homeTeam: "Brasil", awayTeam: "Haití" },
+  { id: "C5", group: "C", homeTeam: "Escocia", awayTeam: "Brasil" },
+  { id: "C6", group: "C", homeTeam: "Marruecos", awayTeam: "Haití" },
+
+  { id: "D1", group: "D", homeTeam: "Estados Unidos", awayTeam: "Paraguay" },
+  { id: "D2", group: "D", homeTeam: "Australia", awayTeam: "Turquía" },
+  { id: "D3", group: "D", homeTeam: "Estados Unidos", awayTeam: "Australia" },
+  { id: "D4", group: "D", homeTeam: "Turquía", awayTeam: "Paraguay" },
+  { id: "D5", group: "D", homeTeam: "Turquía", awayTeam: "Estados Unidos" },
+  { id: "D6", group: "D", homeTeam: "Paraguay", awayTeam: "Australia" },
+
+  { id: "E1", group: "E", homeTeam: "Alemania", awayTeam: "Curazao" },
+  { id: "E2", group: "E", homeTeam: "Costa de Marfil", awayTeam: "Ecuador" },
+  { id: "E3", group: "E", homeTeam: "Alemania", awayTeam: "Costa de Marfil" },
+  { id: "E4", group: "E", homeTeam: "Ecuador", awayTeam: "Curazao" },
+  { id: "E5", group: "E", homeTeam: "Curazao", awayTeam: "Costa de Marfil" },
+  { id: "E6", group: "E", homeTeam: "Ecuador", awayTeam: "Alemania" },
+
+  { id: "F1", group: "F", homeTeam: "Países Bajos", awayTeam: "Japón" },
+  { id: "F2", group: "F", homeTeam: "Suecia", awayTeam: "Túnez" },
+  { id: "F3", group: "F", homeTeam: "Países Bajos", awayTeam: "Suecia" },
+  { id: "F4", group: "F", homeTeam: "Túnez", awayTeam: "Japón" },
+  { id: "F5", group: "F", homeTeam: "Japón", awayTeam: "Suecia" },
+  { id: "F6", group: "F", homeTeam: "Túnez", awayTeam: "Países Bajos" },
+
+  { id: "G1", group: "G", homeTeam: "Bélgica", awayTeam: "Egipto" },
+  { id: "G2", group: "G", homeTeam: "Irán", awayTeam: "Nueva Zelanda" },
+  { id: "G3", group: "G", homeTeam: "Bélgica", awayTeam: "Irán" },
+  { id: "G4", group: "G", homeTeam: "Nueva Zelanda", awayTeam: "Egipto" },
+  { id: "G5", group: "G", homeTeam: "Egipto", awayTeam: "Irán" },
+  { id: "G6", group: "G", homeTeam: "Nueva Zelanda", awayTeam: "Bélgica" },
+
+  { id: "H1", group: "H", homeTeam: "España", awayTeam: "Cabo Verde" },
+  { id: "H2", group: "H", homeTeam: "Arabia Saudí", awayTeam: "Uruguay" },
+  { id: "H3", group: "H", homeTeam: "España", awayTeam: "Arabia Saudí" },
+  { id: "H4", group: "H", homeTeam: "Uruguay", awayTeam: "Cabo Verde" },
+  { id: "H5", group: "H", homeTeam: "Cabo Verde", awayTeam: "Arabia Saudí" },
+  { id: "H6", group: "H", homeTeam: "Uruguay", awayTeam: "España" },
+
+  { id: "I1", group: "I", homeTeam: "Francia", awayTeam: "Senegal" },
+  { id: "I2", group: "I", homeTeam: "Irak", awayTeam: "Noruega" },
+  { id: "I3", group: "I", homeTeam: "Francia", awayTeam: "Irak" },
+  { id: "I4", group: "I", homeTeam: "Noruega", awayTeam: "Senegal" },
+  { id: "I5", group: "I", homeTeam: "Noruega", awayTeam: "Francia" },
+  { id: "I6", group: "I", homeTeam: "Senegal", awayTeam: "Irak" },
+
+  { id: "J1", group: "J", homeTeam: "Argentina", awayTeam: "Argelia" },
+  { id: "J2", group: "J", homeTeam: "Austria", awayTeam: "Jordania" },
+  { id: "J3", group: "J", homeTeam: "Argentina", awayTeam: "Austria" },
+  { id: "J4", group: "J", homeTeam: "Jordania", awayTeam: "Argelia" },
+  { id: "J5", group: "J", homeTeam: "Argelia", awayTeam: "Austria" },
+  { id: "J6", group: "J", homeTeam: "Jordania", awayTeam: "Argentina" },
+
+  { id: "K1", group: "K", homeTeam: "Portugal", awayTeam: "Congo" },
+  { id: "K2", group: "K", homeTeam: "Uzbekistán", awayTeam: "Colombia" },
+  { id: "K3", group: "K", homeTeam: "Portugal", awayTeam: "Uzbekistán" },
+  { id: "K4", group: "K", homeTeam: "Colombia", awayTeam: "Congo" },
+  { id: "K5", group: "K", homeTeam: "Colombia", awayTeam: "Portugal" },
+  { id: "K6", group: "K", homeTeam: "Congo", awayTeam: "Uzbekistán" },
+
+  { id: "L1", group: "L", homeTeam: "Inglaterra", awayTeam: "Croacia" },
+  { id: "L2", group: "L", homeTeam: "Ghana", awayTeam: "Panamá" },
+  { id: "L3", group: "L", homeTeam: "Inglaterra", awayTeam: "Ghana" },
+  { id: "L4", group: "L", homeTeam: "Panamá", awayTeam: "Croacia" },
+  { id: "L5", group: "L", homeTeam: "Panamá", awayTeam: "Inglaterra" },
+  { id: "L6", group: "L", homeTeam: "Croacia", awayTeam: "Ghana" }
+];
