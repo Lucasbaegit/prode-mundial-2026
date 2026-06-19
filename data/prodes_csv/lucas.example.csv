@@ -1,0 +1,73 @@
+participant_id,participant_name,match_id,home_team,away_team,prediction
+lucas,Lucas,A1,México,Sudáfrica,L
+lucas,Lucas,A2,Corea,Chequia,L
+lucas,Lucas,A3,Chequia,Sudáfrica,L
+lucas,Lucas,A4,México,Corea,L
+lucas,Lucas,A5,Chequia,México,V
+lucas,Lucas,A6,Sudáfrica,Corea,V
+lucas,Lucas,B1,Canadá,Bosnia,L
+lucas,Lucas,B2,Catar,Suiza,V
+lucas,Lucas,B3,Suiza,Bosnia,
+lucas,Lucas,B4,Canadá,Catar,L
+lucas,Lucas,B5,Suiza,Canadá,L
+lucas,Lucas,B6,Bosnia,Catar,L
+lucas,Lucas,C1,Brasil,Marruecos,V
+lucas,Lucas,C2,Haití,Escocia,V
+lucas,Lucas,C3,Escocia,Marruecos,V
+lucas,Lucas,C4,Brasil,Haití,L
+lucas,Lucas,C5,Escocia,Brasil,V
+lucas,Lucas,C6,Marruecos,Haití,L
+lucas,Lucas,D1,Estados Unidos,Paraguay,L
+lucas,Lucas,D2,Australia,Turquía,V
+lucas,Lucas,D3,Estados Unidos,Australia,L
+lucas,Lucas,D4,Turquía,Paraguay,L
+lucas,Lucas,D5,Turquía,Estados Unidos,E
+lucas,Lucas,D6,Paraguay,Australia,L
+lucas,Lucas,E1,Alemania,Curazao,L
+lucas,Lucas,E2,Costa de Marfil,Ecuador,V
+lucas,Lucas,E3,Alemania,Costa de Marfil,L
+lucas,Lucas,E4,Ecuador,Curazao,L
+lucas,Lucas,E5,Curazao,Costa de Marfil,V
+lucas,Lucas,E6,Ecuador,Alemania,E
+lucas,Lucas,F1,Países Bajos,Japón,L
+lucas,Lucas,F2,Suecia,Túnez,L
+lucas,Lucas,F3,Países Bajos,Suecia,L
+lucas,Lucas,F4,Túnez,Japón,V
+lucas,Lucas,F5,Japón,Suecia,L
+lucas,Lucas,F6,Túnez,Países Bajos,V
+lucas,Lucas,G1,Bélgica,Egipto,L
+lucas,Lucas,G2,Irán,Nueva Zelanda,L
+lucas,Lucas,G3,Bélgica,Irán,L
+lucas,Lucas,G4,Nueva Zelanda,Egipto,V
+lucas,Lucas,G5,Egipto,Irán,L
+lucas,Lucas,G6,Nueva Zelanda,Bélgica,V
+lucas,Lucas,H1,España,Cabo Verde,L
+lucas,Lucas,H2,Arabia Saudí,Uruguay,V
+lucas,Lucas,H3,España,Arabia Saudí,L
+lucas,Lucas,H4,Uruguay,Cabo Verde,L
+lucas,Lucas,H5,Cabo Verde,Arabia Saudí,V
+lucas,Lucas,H6,Uruguay,España,V
+lucas,Lucas,I1,Francia,Senegal,L
+lucas,Lucas,I2,Irak,Noruega,V
+lucas,Lucas,I3,Francia,Irak,L
+lucas,Lucas,I4,Noruega,Senegal,L
+lucas,Lucas,I5,Noruega,Francia,V
+lucas,Lucas,I6,Senegal,Irak,L
+lucas,Lucas,J1,Argentina,Argelia,L
+lucas,Lucas,J2,Austria,Jordania,L
+lucas,Lucas,J3,Argentina,Austria,L
+lucas,Lucas,J4,Jordania,Argelia,V
+lucas,Lucas,J5,Argelia,Austria,L
+lucas,Lucas,J6,Jordania,Argentina,V
+lucas,Lucas,K1,Portugal,Congo,L
+lucas,Lucas,K2,Uzbekistán,Colombia,V
+lucas,Lucas,K3,Portugal,Uzbekistán,L
+lucas,Lucas,K4,Colombia,Congo,L
+lucas,Lucas,K5,Colombia,Portugal,V
+lucas,Lucas,K6,Congo,Uzbekistán,L
+lucas,Lucas,L1,Inglaterra,Croacia,L
+lucas,Lucas,L2,Ghana,Panamá,L
+lucas,Lucas,L3,Inglaterra,Ghana,L
+lucas,Lucas,L4,Panamá,Croacia,V
+lucas,Lucas,L5,Panamá,Inglaterra,V
+lucas,Lucas,L6,Croacia,Ghana,L

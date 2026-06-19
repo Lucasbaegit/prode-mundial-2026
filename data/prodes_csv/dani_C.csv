@@ -1,0 +1,73 @@
+﻿participant_id,participant_name,match_id,home_team,away_team,prediction
+dani,Dani,A1,México,Sudáfrica,E
+dani,Dani,A2,Corea,Chequia,L
+dani,Dani,A3,Chequia,Sudáfrica,V
+dani,Dani,A4,México,Corea,E
+dani,Dani,A5,Chequia,México,L
+dani,Dani,A6,Sudáfrica,Corea,E
+dani,Dani,B1,Canadá,Bosnia,E
+dani,Dani,B2,Catar,Suiza,V
+dani,Dani,B3,Suiza,Bosnia,L
+dani,Dani,B4,Canadá,Catar,L
+dani,Dani,B5,Suiza,Canadá,L
+dani,Dani,B6,Bosnia,Catar,E
+dani,Dani,C1,Brasil,Marruecos,E
+dani,Dani,C2,Haití,Escocia,E
+dani,Dani,C3,Escocia,Marruecos,V
+dani,Dani,C4,Brasil,Haití,L
+dani,Dani,C5,Escocia,Brasil,V
+dani,Dani,C6,Marruecos,Haití,L
+dani,Dani,D1,Estados Unidos,Paraguay,L
+dani,Dani,D2,Australia,Turquía,E
+dani,Dani,D3,Estados Unidos,Australia,E
+dani,Dani,D4,Turquía,Paraguay,E
+dani,Dani,D5,Turquía,Estados Unidos,V
+dani,Dani,D6,Paraguay,Australia,E
+dani,Dani,E1,Alemania,Curazao,L
+dani,Dani,E2,Costa de Marfil,Ecuador,V
+dani,Dani,E3,Alemania,Costa de Marfil,E
+dani,Dani,E4,Ecuador,Curazao,L
+dani,Dani,E5,Curazao,Costa de Marfil,V
+dani,Dani,E6,Ecuador,Alemania,V
+dani,Dani,F1,Países Bajos,Japón,L
+dani,Dani,F2,Suecia,Túnez,L
+dani,Dani,F3,Países Bajos,Suecia,E
+dani,Dani,F4,Túnez,Japón,V
+dani,Dani,F5,Japón,Suecia,V
+dani,Dani,F6,Túnez,Países Bajos,V
+dani,Dani,G1,Bélgica,Egipto,L
+dani,Dani,G2,Irán,Nueva Zelanda,E
+dani,Dani,G3,Bélgica,Irán,L
+dani,Dani,G4,Nueva Zelanda,Egipto,V
+dani,Dani,G5,Egipto,Irán,E
+dani,Dani,G6,Nueva Zelanda,Bélgica,V
+dani,Dani,H1,España,Cabo Verde,L
+dani,Dani,H2,Arabia Saudí,Uruguay,V
+dani,Dani,H3,España,Arabia Saudí,L
+dani,Dani,H4,Uruguay,Cabo Verde,L
+dani,Dani,H5,Cabo Verde,Arabia Saudí,E
+dani,Dani,H6,Uruguay,España,V
+dani,Dani,I1,Francia,Senegal,L
+dani,Dani,I2,Irak,Noruega,V
+dani,Dani,I3,Francia,Irak,L
+dani,Dani,I4,Noruega,Senegal,V
+dani,Dani,I5,Noruega,Francia,V
+dani,Dani,I6,Senegal,Irak,E
+dani,Dani,J1,Argentina,Argelia,L
+dani,Dani,J2,Austria,Jordania,L
+dani,Dani,J3,Argentina,Austria,L
+dani,Dani,J4,Jordania,Argelia,V
+dani,Dani,J5,Argelia,Austria,L
+dani,Dani,J6,Jordania,Argentina,V
+dani,Dani,K1,Portugal,Congo,L
+dani,Dani,K2,Uzbekistán,Colombia,V
+dani,Dani,K3,Portugal,Uzbekistán,L
+dani,Dani,K4,Colombia,Congo,L
+dani,Dani,K5,Colombia,Portugal,V
+dani,Dani,K6,Congo,Uzbekistán,E
+dani,Dani,L1,Inglaterra,Croacia,E
+dani,Dani,L2,Ghana,Panamá,L
+dani,Dani,L3,Inglaterra,Ghana,L
+dani,Dani,L4,Panamá,Croacia,V
+dani,Dani,L5,Panamá,Inglaterra,V
+dani,Dani,L6,Croacia,Ghana,L

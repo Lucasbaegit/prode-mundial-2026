@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { matches } from "./data/matches";
-import { participants, previousRankingPositions } from "./data/participants";
+import { previousRankingPositions } from "./data/participants";
+import { getParticipants, getParticipantsLoadInfo } from "./data/getParticipants";
 import type {
   ActualResult,
   FilterState,
@@ -35,6 +36,8 @@ const initialFilters: FilterState = {
 };
 
 export default function App() {
+  const participants = useMemo(() => getParticipants(), []);
+  const participantsLoadInfo = useMemo(() => getParticipantsLoadInfo(), []);
   const [selectedParticipantId, setSelectedParticipantId] = useState("lucas");
   const [filters, setFilters] = useState<FilterState>(initialFilters);
   const [loadState, setLoadState] = useState<ResultsLoadState | null>(null);
@@ -59,14 +62,14 @@ export default function App() {
   }, [refreshResults]);
 
   useEffect(() => {
-    if (loadState?.requestedProvider !== "api-football") return;
+    if (!loadState?.canPoll) return;
 
     const intervalId = window.setInterval(() => {
       void refreshResults();
     }, 60_000);
 
     return () => window.clearInterval(intervalId);
-  }, [loadState?.requestedProvider, refreshResults]);
+  }, [loadState?.canPoll, refreshResults]);
 
   const results = loadState?.results ?? [];
   const selectedParticipant =
@@ -131,16 +134,28 @@ export default function App() {
 
       <main className="mx-auto grid max-w-7xl gap-5 px-4 py-6 sm:px-6 lg:px-8">
         <div className="grid gap-4 lg:grid-cols-[minmax(260px,360px)_1fr]">
-          <ParticipantSelector
-            participants={participants}
-            selectedParticipantId={selectedParticipantId}
-            onChange={(participantId) => {
-              setSelectedParticipantId(participantId);
-              if (participantId === "all") {
-                setFilters((current) => ({ ...current, participantResult: "all" }));
-              }
-            }}
-          />
+          <div className="grid gap-2">
+            <ParticipantSelector
+              participants={participants}
+              selectedParticipantId={selectedParticipantId}
+              onChange={(participantId) => {
+                setSelectedParticipantId(participantId);
+                if (participantId === "all") {
+                  setFilters((current) => ({ ...current, participantResult: "all" }));
+                }
+              }}
+            />
+            <span
+              className={`w-fit rounded-full px-3 py-1 text-xs font-black ring-1 ${
+                participantsLoadInfo.hasCsvParticipants
+                  ? "bg-field/10 text-field ring-field/20"
+                  : "bg-stone-100 text-stone-600 ring-stone-200"
+              }`}
+              title={participantsLoadInfo.csvFiles.join(", ")}
+            >
+              {participantsLoadInfo.sourceLabel}
+            </span>
+          </div>
           <ProviderStatus loadState={loadState} loading={loading} onRefresh={refreshResults} />
         </div>
 

@@ -1,7 +1,8 @@
 import type { ActualResult, ResultProviderName, ResultsProvider } from "../types/prode";
 
-const RESULTS_CACHE_KEY = "prode-2026:last-results";
-const RESULTS_CACHE_META_KEY = "prode-2026:last-results-meta";
+const REAL_RESULTS_CACHE_KEY = "prode:lastRealResults";
+const REAL_RESULTS_UPDATED_AT_KEY = "prode:lastRealResultsUpdatedAt";
+const REAL_RESULTS_PROVIDER_KEY = "prode:lastRealProvider";
 
 export interface CachedResultsPayload {
   results: ActualResult[];
@@ -13,7 +14,7 @@ export const cacheResultsProvider: ResultsProvider = {
   async getResults() {
     const cached = getCachedResults();
     if (!cached) {
-      throw new Error("No hay cache local de resultados.");
+      throw new Error("No hay cache real de resultados.");
     }
 
     return cached.results;
@@ -23,30 +24,32 @@ export const cacheResultsProvider: ResultsProvider = {
 export function getCachedResults(): CachedResultsPayload | null {
   if (!canUseLocalStorage()) return null;
 
-  const rawResults = localStorage.getItem(RESULTS_CACHE_KEY);
-  const rawMeta = localStorage.getItem(RESULTS_CACHE_META_KEY);
-  if (!rawResults || !rawMeta) return null;
+  const rawResults = localStorage.getItem(REAL_RESULTS_CACHE_KEY);
+  const updatedAt = localStorage.getItem(REAL_RESULTS_UPDATED_AT_KEY);
+  const provider = localStorage.getItem(REAL_RESULTS_PROVIDER_KEY) as ResultProviderName | null;
+  if (!rawResults || !updatedAt || provider !== "api-football") return null;
 
   try {
     const results = JSON.parse(rawResults) as ActualResult[];
-    const meta = JSON.parse(rawMeta) as Omit<CachedResultsPayload, "results">;
 
-    if (!Array.isArray(results) || !meta.updatedAt || !meta.provider) {
+    if (!Array.isArray(results)) {
       return null;
     }
 
-    return { results, updatedAt: meta.updatedAt, provider: meta.provider };
+    return { results, updatedAt, provider };
   } catch {
     return null;
   }
 }
 
-export function saveResultsToCache(results: ActualResult[], provider: ResultProviderName): void {
+export function saveRealResultsToCache(results: ActualResult[]): void {
   if (!canUseLocalStorage()) return;
+  if (!results.some((result) => result.provider === "api-football")) return;
 
   const updatedAt = new Date().toISOString();
-  localStorage.setItem(RESULTS_CACHE_KEY, JSON.stringify(results));
-  localStorage.setItem(RESULTS_CACHE_META_KEY, JSON.stringify({ updatedAt, provider }));
+  localStorage.setItem(REAL_RESULTS_CACHE_KEY, JSON.stringify(results));
+  localStorage.setItem(REAL_RESULTS_UPDATED_AT_KEY, updatedAt);
+  localStorage.setItem(REAL_RESULTS_PROVIDER_KEY, "api-football");
 }
 
 function canUseLocalStorage(): boolean {

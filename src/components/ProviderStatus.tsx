@@ -30,7 +30,7 @@ export function ProviderStatus({ loadState, loading, onRefresh }: ProviderStatus
           disabled={loading}
           className="h-11 rounded-lg bg-ink px-4 text-sm font-black text-white transition hover:bg-night disabled:cursor-wait disabled:bg-stone-400"
         >
-          {loading ? "Actualizando..." : "Actualizar resultados"}
+          {loading ? "Actualizando..." : "Actualizar resultados reales"}
         </button>
       </div>
     </section>

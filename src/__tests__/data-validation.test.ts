@@ -1,9 +1,11 @@
 import { describe, expect, it } from "vitest";
 import { matches } from "../data/matches";
 import { mockResults } from "../data/mockResults";
-import { participants } from "../data/participants";
+import { getParticipants } from "../data/getParticipants";
 import type { Match, Participant } from "../types/prode";
 import { groupMatchesByGroup, validateProdeData } from "../utils/validation";
+
+const participants = getParticipants();
 
 describe("validación de datos reales", () => {
   it("valida el dataset principal sin errores", () => {

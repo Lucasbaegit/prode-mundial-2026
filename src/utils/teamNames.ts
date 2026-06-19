@@ -28,13 +28,13 @@ const teamAliases: Record<string, string[]> = {
   Chequia: ["Czechia", "Czech Republic"],
   Sudáfrica: ["South Africa"],
   Australia: ["Australia"],
-  Turquía: ["Turkey"],
+  Turquía: ["Turkey", "Türkiye", "Turkiye"],
   Paraguay: ["Paraguay"],
   Ecuador: ["Ecuador"],
   Uruguay: ["Uruguay"],
   Haití: ["Haiti"],
   Escocia: ["Scotland"],
-  Congo: ["Congo"],
+  Congo: ["Congo", "DR Congo", "Congo DR"],
   Colombia: ["Colombia"],
   Ghana: ["Ghana"],
   Panamá: ["Panama"],
@@ -44,6 +44,7 @@ const teamAliases: Record<string, string[]> = {
   Argelia: ["Algeria"],
   Austria: ["Austria"],
   Jordania: ["Jordan"],
+  Uzbekistán: ["Uzbekistan"],
   Irán: ["Iran"],
   Egipto: ["Egypt"]
 };

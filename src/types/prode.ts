@@ -16,7 +16,7 @@ export const GROUPS = [
 export type Group = (typeof GROUPS)[number];
 export type Prediction = "L" | "E" | "V" | null;
 export type MatchStatus = "scheduled" | "live" | "finished";
-export type ResultProviderName = "mock" | "api-football" | "cache";
+export type ResultProviderName = "api-football" | "cache" | "mock" | "pending";
 export type RankingMovement = "up" | "down" | "same";
 
 export interface Match {
@@ -108,4 +108,5 @@ export interface ResultsLoadState {
   message?: string;
   error?: string;
   updatedAt: string;
+  canPoll: boolean;
 }
