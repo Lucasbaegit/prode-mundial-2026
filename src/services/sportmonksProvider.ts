@@ -1,14 +1,6 @@
-import { matches as localMatches } from "../data/matches";
-import type { ActualResult, Match, MatchStatus, ResultsProvider } from "../types/prode";
+import type { ActualResult, Match, MatchStatus } from "../types/prode";
 import { outcomeFromGoals } from "../utils/outcome";
 import { teamsMatch } from "../utils/teamNames";
-
-interface SportmonksFixturesResponse {
-  data?: SportmonksFixture[];
-  pagination?: {
-    has_more?: boolean;
-  };
-}
 
 export interface SportmonksFixture {
   id: number;
@@ -20,8 +12,6 @@ export interface SportmonksFixture {
     name?: string;
     short_name?: string;
   };
-  league_id?: number;
-  season_id?: number;
   participants?: SportmonksParticipant[];
   scores?: SportmonksScore[];
 }
@@ -36,62 +26,10 @@ interface SportmonksParticipant {
 
 interface SportmonksScore {
   description?: string;
-  participant_id?: number;
   score?: {
     goals?: number | null;
     participant?: "home" | "away";
   };
-}
-
-export interface SportmonksConfig {
-  apiToken: string;
-  baseUrl: string;
-  worldCupId?: string;
-}
-
-export const sportmonksProvider: ResultsProvider = {
-  async getResults() {
-    const fixtures = await fetchSportmonksFixtures();
-    if (fixtures.length === 0) {
-      throw new Error("sportmonks: no devolvió fixtures para la competición configurada.");
-    }
-    return transformSportmonksFixtures(fixtures, localMatches);
-  }
-};
-
-export async function fetchSportmonksFixtures(config = getSportmonksConfig()): Promise<SportmonksFixture[]> {
-  if (!config.apiToken) {
-    throw new Error("missing-config: falta VITE_SPORTMONKS_API_TOKEN.");
-  }
-
-  if (!config.worldCupId) {
-    throw new Error("missing-config: falta VITE_SPORTMONKS_WORLD_CUP_ID.");
-  }
-
-  const fixtures: SportmonksFixture[] = [];
-  let page = 1;
-  let hasMore = true;
-
-  while (hasMore) {
-    const url = new URL("/fixtures", config.baseUrl);
-    url.searchParams.set("api_token", config.apiToken);
-    url.searchParams.set("include", "participants;state;scores;league;season");
-    url.searchParams.set("filters", `fixtureLeagues:${config.worldCupId}`);
-    url.searchParams.set("per_page", "50");
-    url.searchParams.set("page", String(page));
-
-    const response = await fetch(url);
-    if (!response.ok) {
-      throw new Error(`Sportmonks respondió ${response.status}.`);
-    }
-
-    const payload = (await response.json()) as SportmonksFixturesResponse;
-    fixtures.push(...(payload.data ?? []));
-    hasMore = Boolean(payload.pagination?.has_more);
-    page += 1;
-  }
-
-  return fixtures;
 }
 
 export function transformSportmonksFixtures(
@@ -104,9 +42,6 @@ export function transformSportmonksFixtures(
     const fixture = sportmonksFixtures.find((candidate) => candidateMatchesLocalMatch(candidate, match));
 
     if (!fixture) {
-      console.warn(
-        `[Sportmonks] No se pudo mapear ${match.id} ${match.homeTeam} vs ${match.awayTeam}; queda pendiente.`
-      );
       return {
         matchId: match.id,
         status: "scheduled",
@@ -151,16 +86,6 @@ export function mapSportmonksStatus(fixture: Pick<SportmonksFixture, "state" | "
   return "scheduled";
 }
 
-export function getSportmonksConfig(): SportmonksConfig {
-  return {
-    apiToken: import.meta.env.VITE_SPORTMONKS_API_TOKEN?.trim() ?? "",
-    baseUrl:
-      import.meta.env.VITE_SPORTMONKS_BASE_URL?.trim() ||
-      "https://api.sportmonks.com/v3/football",
-    worldCupId: import.meta.env.VITE_SPORTMONKS_WORLD_CUP_ID?.trim() || undefined
-  };
-}
-
 function candidateMatchesLocalMatch(candidate: SportmonksFixture, match: Match): boolean {
   const teams = getSportmonksTeamNames(candidate);
   if (!teams) return false;
@@ -172,12 +97,7 @@ function getSportmonksTeamNames(fixture: SportmonksFixture): { homeTeam: string;
   const homeParticipant = fixture.participants?.find((participant) => participant.meta?.location === "home");
   const awayParticipant = fixture.participants?.find((participant) => participant.meta?.location === "away");
 
-  if (homeParticipant && awayParticipant) {
-    return {
-      homeTeam: homeParticipant.name,
-      awayTeam: awayParticipant.name
-    };
-  }
+  if (homeParticipant && awayParticipant) return { homeTeam: homeParticipant.name, awayTeam: awayParticipant.name };
 
   if (fixture.name?.includes(" vs ")) {
     const [homeTeam, awayTeam] = fixture.name.split(" vs ");
@@ -201,14 +121,8 @@ function extractSportmonksGoals(fixture: SportmonksFixture): {
     (acc, row) => {
       const goals = row.score?.goals;
       if (typeof goals !== "number") return acc;
-
-      if (row.score?.participant === "home") {
-        acc.homeGoals = goals;
-      }
-      if (row.score?.participant === "away") {
-        acc.awayGoals = goals;
-      }
-
+      if (row.score?.participant === "home") acc.homeGoals = goals;
+      if (row.score?.participant === "away") acc.awayGoals = goals;
       return acc;
     },
     { homeGoals: null, awayGoals: null } as { homeGoals: number | null; awayGoals: number | null }

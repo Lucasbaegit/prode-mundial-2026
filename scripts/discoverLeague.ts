@@ -2,9 +2,9 @@ import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 
 interface EnvValues {
-  VITE_API_FOOTBALL_KEY?: string;
-  VITE_API_FOOTBALL_BASE_URL?: string;
-  VITE_API_FOOTBALL_SEASON?: string;
+  API_FOOTBALL_KEY?: string;
+  API_FOOTBALL_BASE_URL?: string;
+  API_FOOTBALL_SEASON?: string;
 }
 
 interface LeaguePayload {
@@ -24,12 +24,12 @@ interface LeaguePayload {
 }
 
 const env = readEnvLocal(process.cwd());
-const apiKey = env.VITE_API_FOOTBALL_KEY?.trim();
-const baseUrl = env.VITE_API_FOOTBALL_BASE_URL?.trim() || "https://v3.football.api-sports.io";
-const season = env.VITE_API_FOOTBALL_SEASON?.trim() || "2026";
+const apiKey = env.API_FOOTBALL_KEY?.trim();
+const baseUrl = env.API_FOOTBALL_BASE_URL?.trim() || "https://v3.football.api-sports.io";
+const season = env.API_FOOTBALL_SEASON?.trim() || "2026";
 
 if (!apiKey) {
-  console.error("Falta VITE_API_FOOTBALL_KEY en .env.local.");
+  console.error("Falta API_FOOTBALL_KEY en .env.local.");
   process.exitCode = 1;
 } else {
   const url = new URL("/leagues", baseUrl);

@@ -18,6 +18,17 @@ export function ProviderStatus({ loadState, loading, onRefresh }: ProviderStatus
           <p className="mt-1 text-lg font-black text-ink">
             {loadState?.label ?? "Preparando provider"}
           </p>
+          {loadState ? (
+            <p
+              className={`mt-1 text-xs font-black uppercase tracking-[0.16em] ${
+                loadState.label === "Backend local no disponible" ? "text-rust" : "text-field"
+              }`}
+            >
+              {loadState.label === "Backend local no disponible"
+                ? "Backend local no disponible"
+                : "Backend local conectado"}
+            </p>
+          ) : null}
           <p className="mt-1 text-sm text-stone-600">
             Actualizado {formatRelativeTime(loadState?.updatedAt)}
           </p>

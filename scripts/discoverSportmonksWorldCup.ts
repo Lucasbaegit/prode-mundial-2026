@@ -2,8 +2,8 @@ import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 
 interface EnvValues {
-  VITE_SPORTMONKS_API_TOKEN?: string;
-  VITE_SPORTMONKS_BASE_URL?: string;
+  SPORTMONKS_API_TOKEN?: string;
+  SPORTMONKS_BASE_URL?: string;
 }
 
 interface LeaguePayload {
@@ -22,11 +22,11 @@ interface LeaguePayload {
 }
 
 const env = readEnvLocal(process.cwd());
-const apiToken = env.VITE_SPORTMONKS_API_TOKEN?.trim();
-const baseUrl = env.VITE_SPORTMONKS_BASE_URL?.trim() || "https://api.sportmonks.com/v3/football";
+const apiToken = env.SPORTMONKS_API_TOKEN?.trim();
+const baseUrl = env.SPORTMONKS_BASE_URL?.trim() || "https://api.sportmonks.com/v3/football";
 
 if (!apiToken) {
-  console.error("Falta VITE_SPORTMONKS_API_TOKEN en .env.local.");
+  console.error("Falta SPORTMONKS_API_TOKEN en .env.local.");
   process.exitCode = 1;
 } else {
   const url = new URL("/leagues/search/World Cup", baseUrl);

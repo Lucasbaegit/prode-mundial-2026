@@ -1,8 +1,16 @@
 # Prode Mundial 2026
 
-App web local para gestionar un Prode Mundial FIFA 2026 amistoso: fixture de grupos A-L, participantes, predicciones L/E/V, resultados reales via API-Football, ranking, podio, filtros y exportacion CSV.
+App local para gestionar un Prode Mundial FIFA 2026 amistoso con React/Vite y un backend local Node/Express para consultar resultados reales sin exponer tokens en el navegador.
 
-No se muestran resultados inventados como reales. Si no hay API configurada, o si la API falla sin cache real, todos los partidos quedan pendientes.
+## Arquitectura
+
+```txt
+Frontend React/Vite
+  -> Backend local http://localhost:8787/api/results
+  -> API-Football / Sportmonks / CSV real / Pending
+```
+
+El frontend no llama API-Football ni Sportmonks directamente. Las claves privadas se leen solo en el backend desde `.env.local`.
 
 ## Instalacion
 
@@ -10,137 +18,126 @@ No se muestran resultados inventados como reales. Si no hay API configurada, o s
 npm install
 ```
 
-## Correr en local
+## Variables .env.local
+
+Crear `.env.local` en la raiz:
+
+```env
+# Frontend publica
+VITE_RESULTS_API_URL=http://localhost:8787/api/results
+
+# API-Football privada, usada solo por backend local
+API_FOOTBALL_KEY=
+API_FOOTBALL_BASE_URL=https://v3.football.api-sports.io
+API_FOOTBALL_LEAGUE_ID=1
+API_FOOTBALL_SEASON=2026
+
+# Sportmonks privada, usada solo por backend local
+SPORTMONKS_API_TOKEN=
+SPORTMONKS_BASE_URL=https://api.sportmonks.com/v3/football
+SPORTMONKS_WORLD_CUP_ID=26618
+
+# Provider backend
+RESULTS_PROVIDER=auto
+```
+
+`.env.local` esta ignorado por Git. No uses `VITE_` para tokens privados.
+
+## Correr
 
 ```bash
 npm run dev
 ```
 
-Luego abrir la URL que informe Vite, normalmente `http://127.0.0.1:5173/`.
+Ese comando levanta:
 
-## Build
+- backend: `http://localhost:8787`
+- frontend: `http://127.0.0.1:5173`
 
-```bash
-npm run build
-```
-
-## Tests y validacion
+Tambien se pueden correr por separado:
 
 ```bash
-npm run test
-npm run validate:data
+npm run dev:server
+npm run dev:client
 ```
 
-`validate:data` verifica el dataset principal: 72 partidos, 6 por grupo, ids unicos, predicciones validas y resultados pendientes consistentes cuando no hay API.
+## Probar backend
 
-## Providers de resultados
+```txt
+http://localhost:8787/api/health
+http://localhost:8787/api/results
+```
 
-Por defecto la app intenta usar API-Football. Copiar `.env.example` a `.env.local` para configurar credenciales reales.
+`/api/results` devuelve:
+
+```json
+{
+  "source": "api-football",
+  "status": "ok",
+  "message": "Resultados reales via API-Football.",
+  "updatedAt": "2026-06-20T00:00:00.000Z",
+  "results": []
+}
+```
+
+## Fallback de resultados
+
+Orden del backend:
+
+1. API-Football
+2. Sportmonks
+3. Cache real en `data/cache/results-cache.json`
+4. CSV manual real
+5. Pending results
+
+API-Football puede reconocer `league=1` World Cup y `season=2026` pero devolver `results=0`. En ese caso no se considera exito y se prueba Sportmonks.
+
+No se usan resultados inventados.
+
+## Sportmonks
+
+Configurar:
 
 ```env
-VITE_RESULTS_PROVIDER=auto
-VITE_API_FOOTBALL_KEY=TU_API_KEY
-VITE_API_FOOTBALL_BASE_URL=https://v3.football.api-sports.io
-VITE_API_FOOTBALL_LEAGUE_ID=ID_DEL_MUNDIAL_2026
-VITE_API_FOOTBALL_SEASON=2026
+SPORTMONKS_API_TOKEN=
+SPORTMONKS_BASE_URL=https://api.sportmonks.com/v3/football
+SPORTMONKS_WORLD_CUP_ID=26618
 ```
 
-Valores soportados:
-
-- `VITE_RESULTS_PROVIDER=api-football`: intenta resultados reales via API-Football.
-- `VITE_RESULTS_PROVIDER=sportmonks`: intenta Sportmonks y luego CSV real.
-- `VITE_RESULTS_PROVIDER=manual-real`: usa solo CSV real y luego pending.
-- `VITE_RESULTS_PROVIDER=auto`: API-Football -> Sportmonks -> CSV real -> pending.
-- `VITE_RESULTS_PROVIDER=mock`: modo demo explicito; deja todos los partidos pendientes.
-
-Fallback real en modo `auto`:
-
-1. API-Football.
-2. Sportmonks.
-3. CSV manual de resultados reales.
-4. Todos los partidos pendientes.
-
-No se usa mock como fallback silencioso.
-
-## Conectar API-Football
-
-1. Crear una cuenta/API key de API-Football / API-Sports Football v3.
-2. Crear `.env.local` basado en `.env.example`.
-3. Completar `VITE_API_FOOTBALL_KEY`.
-4. Completar `VITE_API_FOOTBALL_LEAGUE_ID` cuando este confirmado el id de la competicion FIFA 2026 en API-Football.
-5. Si no sabes el league id, correr:
-
-```bash
-npm run discover:league
-```
-
-Ese script lee `.env.local`, consulta `/leagues?search=World Cup` y lista candidatas para la temporada configurada. No escribe secretos ni modifica archivos.
-
-El fetch de resultados consulta:
+El backend consulta fixtures con:
 
 ```txt
-GET /fixtures?league={VITE_API_FOOTBALL_LEAGUE_ID}&season={VITE_API_FOOTBALL_SEASON}
+GET /fixtures?filters=fixtureLeagues:{SPORTMONKS_WORLD_CUP_ID}&include=participants;state;scores;league;season
 ```
 
-con header:
-
-```txt
-x-apisports-key: VITE_API_FOOTBALL_KEY
-```
-
-Si los nombres externos no alcanzan para mapear un partido, completar `src/data/apiFootballMatchMap.ts` con el `apiExternalId` real.
-
-API-Football puede reconocer `league=1` World Cup y `season=2026` pero devolver `results=0` para fixtures. En ese caso la app no lo trata como exito completo: avanza a Sportmonks, luego CSV real y finalmente pending.
-
-## Conectar Sportmonks
-
-Agregar en `.env.local`:
-
-```env
-VITE_RESULTS_PROVIDER=auto
-VITE_SPORTMONKS_API_TOKEN=TU_TOKEN
-VITE_SPORTMONKS_BASE_URL=https://api.sportmonks.com/v3/football
-VITE_SPORTMONKS_WORLD_CUP_ID=ID_COMPETICION_WORLD_CUP
-```
-
-El provider usa el endpoint de fixtures de Sportmonks Football API v3:
-
-```txt
-GET /fixtures?filters=fixtureLeagues:{VITE_SPORTMONKS_WORLD_CUP_ID}&include=participants;state;scores;league;season
-```
-
-La autenticacion se envia como `api_token` en query string. Para buscar candidatas:
+Para buscar candidatas:
 
 ```bash
 npm run discover:sportmonks
 ```
 
-El script lee `.env.local`, consulta Sportmonks y lista ids/nombres/temporadas sin imprimir el token.
+El script no imprime tokens.
 
-## Cache real
+## API-Football
 
-Cuando la API devuelve resultados reales, se guardan en `localStorage`:
+Configurar:
 
-- `prode:lastRealResults`
-- `prode:lastRealResultsUpdatedAt`
-- `prode:lastRealProvider`
+```env
+API_FOOTBALL_KEY=
+API_FOOTBALL_BASE_URL=https://v3.football.api-sports.io
+API_FOOTBALL_LEAGUE_ID=1
+API_FOOTBALL_SEASON=2026
+```
 
-El cache solo guarda respuestas de `api-football`. No guarda mock ni pending.
+Para listar ligas candidatas:
 
-## Partidos pendientes
-
-Si falta `VITE_API_FOOTBALL_KEY`, si falta configuracion, o si la API falla y no hay cache real, la app genera un resultado pendiente para cada partido:
-
-- `status: "scheduled"`
-- `homeGoals: null`
-- `awayGoals: null`
-- `outcome: null`
-
-El ranking queda en 0 puntos hasta que existan resultados reales.
+```bash
+npm run discover:league
+```
 
 ## Resultados reales por CSV
 
-Si no hay API disponible, se puede cargar un CSV manual real en:
+Si las APIs no tienen datos, cargar CSV real en:
 
 ```txt
 data/results_csv/
@@ -151,145 +148,61 @@ Formato:
 ```csv
 match_id,home_goals,away_goals,status,updated_at
 A1,2,0,finished,2026-06-11T20:00:00Z
-A2,2,1,finished,2026-06-12T03:00:00Z
 ```
 
-`status` acepta `scheduled`, `live` o `finished`. Los partidos `finished` requieren goles numericos. Para generar `src/data/generatedResults.ts`:
+Sincronizar:
 
 ```bash
 npm run sync:results
 ```
 
-`npm run dev` y `npm run build` tambien ejecutan `sync:results` automaticamente.
+Los archivos `*.example.csv`, `*.sample.csv`, ocultos o temporales se ignoran.
 
-## Carga de participantes por CSV
+## Participantes por CSV
 
-La forma recomendada de cargar participantes es crear un archivo CSV por participante en:
+Crear un CSV por participante en:
 
 ```txt
 data/prodes_csv/
 ```
 
-Ejemplos:
-
-```txt
-data/prodes_csv/lucas.csv
-data/prodes_csv/juan.csv
-data/prodes_csv/maria.csv
-```
-
-Columnas obligatorias:
+Formato:
 
 ```csv
 participant_id,participant_name,match_id,home_team,away_team,prediction
 ```
 
-`prediction` acepta:
-
-- `L`: gana el equipo izquierdo/local.
-- `E`: empate.
-- `V`: gana el equipo derecho/visitante.
-- vacio: se convierte a `null` y figura como "sin marcar".
-
-Para sincronizar CSV y generar `src/data/generatedParticipants.ts`:
+`prediction` acepta `L`, `E`, `V` o vacio. Sincronizar:
 
 ```bash
 npm run sync:participants
-npm run dev
 ```
 
-`npm run dev` y `npm run build` ejecutan la sincronizacion automaticamente antes de arrancar/compilar. Si modificas o agregas CSV mientras el dev server esta corriendo, reinicia el dev server o corre `npm run sync:participants` y recarga.
-
-El loader ignora archivos `*.example.csv`, `*.sample.csv`, ocultos y temporales.
-
-Para validar:
+## Scripts
 
 ```bash
+npm run sync:participants
+npm run sync:results
 npm run validate:data
+npm run test
+npm run build
+npm run server
 ```
 
-Si aparece un error de `match_id inexistente`, corregi la columna `match_id` para que use ids del fixture (`A1` a `L6`). Si `home_team` o `away_team` no coinciden con el fixture, se muestra un warning claro pero no se rompe la carga.
-
-Regla de combinacion: si existen participantes generados desde CSV, se incluyen y reemplazan cualquier participante local con el mismo `id`. Los demos solo se muestran cuando no hay CSV o si se activa `SHOW_DEMO_PARTICIPANTS` en `src/data/getParticipants.ts`.
-
-## Agregar participantes locales fallback
-
-Editar `src/data/participants.ts` y sumar un objeto:
-
-```ts
-{
-  id: "nuevo-id",
-  name: "Nombre",
-  predictions: {
-    A1: "L",
-    A2: "E",
-    A3: "V",
-    A4: null
-  }
-}
-```
-
-Las predicciones validas son `"L"`, `"E"`, `"V"` o `null`. Este archivo se mantiene como fallback si no hay CSV.
-
-## Resultados mock
-
-`src/data/mockResults.ts` ya no contiene partidos finalizados inventados. El mock visible solo deja todos los partidos pendientes. Los tests que necesitan resultados `finished` usan fixtures internos de test.
-
-## L/E/V y scoring
-
-- `L`: gana el equipo de la izquierda/local.
-- `E`: empate.
-- `V`: gana el equipo de la derecha/visitante.
-
-Scoring:
+## Scoring
 
 - `finished` + acierto = 1 punto.
 - `finished` + fallo = 0 puntos.
 - `scheduled` = 0 puntos.
 - `live` = 0 puntos.
-- `null` = 0 puntos y figura como "sin marcar".
+- prediccion `null` = 0 puntos y figura como sin marcar.
 
-## Desempates
-
-El ranking se ordena asi:
-
-1. Mayor cantidad de puntos.
-2. Mayor efectividad.
-3. Menor cantidad de partidos sin marcar.
-4. Orden alfabetico por nombre.
-
-La UI tambien deja preparado el movimiento de ranking: subio, bajo o igual, calculado contra posiciones previas locales mockeadas en `src/data/participants.ts`.
-
-## Exportar CSV
-
-El boton "Exportar ranking CSV" descarga:
-
-- `posicion`
-- `participante`
-- `puntos`
-- `aciertos`
-- `fallos`
-- `pendientes`
-- `sin_marcar`
-- `efectividad`
-
-No usa backend.
-
-## Estructura principal
+## Estructura
 
 ```txt
-src/
-  components/       UI reutilizable
-  data/             fixture, participantes, resultados generados CSV, mapa API
-  services/         providers API-Football/Sportmonks/CSV/pending
-  types/            tipos del dominio
-  utils/            scoring, ranking, validacion, CSV, formato, nombres
-  __tests__/        tests unitarios y validacion de datos
+server/              backend local Express y providers privados
+src/                 frontend React/Vite
+data/prodes_csv/     participantes CSV
+data/results_csv/    resultados reales CSV
+data/cache/          cache real local ignorado por Git
 ```
-
-## Proximos pasos recomendados
-
-1. Crear `.env.local` con API key real.
-2. Confirmar el `league id` de FIFA 2026 en API-Football o correr `npm run discover:league`.
-3. Completar `src/data/apiFootballMatchMap.ts` con fixture ids reales si el mapeo por nombre no alcanza.
-4. Convertir los prodes reales a CSV y copiarlos en `data/prodes_csv/`.
