@@ -7,10 +7,10 @@ App local para gestionar un Prode Mundial FIFA 2026 amistoso con React/Vite y un
 ```txt
 Frontend React/Vite
   -> Backend local http://localhost:8787/api/results
-  -> API-Football / Sportmonks / CSV real / Pending
+  -> API-Football / Sportmonks / football-data.org / CSV real / Pending
 ```
 
-El frontend no llama API-Football ni Sportmonks directamente. Las claves privadas se leen solo en el backend desde `.env.local`.
+El frontend no llama API-Football, Sportmonks ni football-data.org directamente. Las claves privadas se leen solo en el backend desde `.env.local`.
 
 ## Instalacion
 
@@ -37,7 +37,12 @@ SPORTMONKS_API_TOKEN=
 SPORTMONKS_BASE_URL=https://api.sportmonks.com/v3/football
 SPORTMONKS_WORLD_CUP_ID=26618
 
-# Provider backend
+# football-data.org privada, usada solo por backend local
+FOOTBALL_DATA_API_TOKEN=
+FOOTBALL_DATA_BASE_URL=https://api.football-data.org/v4
+FOOTBALL_DATA_COMPETITION_CODE=WC
+
+# Provider backend: auto | api-football | sportmonks | football-data | manual-real
 RESULTS_PROVIDER=auto
 ```
 
@@ -86,9 +91,10 @@ Orden del backend:
 
 1. API-Football
 2. Sportmonks
-3. Cache real en `data/cache/results-cache.json`
-4. CSV manual real
-5. Pending results
+3. football-data.org
+4. Cache real en `data/cache/results-cache.json`
+5. CSV manual real
+6. Pending results
 
 API-Football puede reconocer `league=1` World Cup y `season=2026` pero devolver `results=0`. En ese caso no se considera exito y se prueba Sportmonks.
 
@@ -117,6 +123,30 @@ npm run discover:sportmonks
 ```
 
 El script no imprime tokens.
+
+## football-data.org
+
+Configurar:
+
+```env
+FOOTBALL_DATA_API_TOKEN=
+FOOTBALL_DATA_BASE_URL=https://api.football-data.org/v4
+FOOTBALL_DATA_COMPETITION_CODE=WC
+```
+
+El backend usa primero el endpoint global:
+
+```txt
+GET /matches
+```
+
+Ese endpoint devuelve partidos del dia mezclados de varias competiciones, por eso el provider filtra contra los 72 partidos del fixture local por nombres normalizados y descarta encuentros ajenos como Londrina EC, Ceara SC o Vila Nova FC. Si no hay coincidencias en `/matches`, puede probar `/competitions/{FOOTBALL_DATA_COMPETITION_CODE}/matches` y luego sigue fallback.
+
+Para descubrir coincidencias sin imprimir tokens:
+
+```bash
+npm run discover:football-data
+```
 
 ## API-Football
 
@@ -187,6 +217,7 @@ npm run validate:data
 npm run test
 npm run build
 npm run server
+npm run discover:football-data
 ```
 
 ## Scoring

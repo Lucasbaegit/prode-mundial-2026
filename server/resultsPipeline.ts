@@ -1,11 +1,12 @@
 import type { ServerProviderResult, ServerResultsResponse } from "./types";
 import { getApiFootballResults } from "./providers/apiFootballServerProvider";
+import { getFootballDataResults } from "./providers/footballDataServerProvider";
 import { getManualResults } from "./providers/manualResultsServerProvider";
 import { getPendingResults } from "./providers/pendingServerProvider";
 import { getSportmonksResults } from "./providers/sportmonksServerProvider";
 import { readResultsCache, writeResultsCache } from "./utils/resultsCache";
 
-type ProviderName = "api-football" | "sportmonks" | "manual-real";
+type ProviderName = "api-football" | "sportmonks" | "football-data" | "manual-real";
 
 export async function getResultsResponse(): Promise<ServerResultsResponse> {
   const configuredProvider = normalizeProvider(process.env.RESULTS_PROVIDER);
@@ -17,7 +18,7 @@ export async function getResultsResponse(): Promise<ServerResultsResponse> {
       const providerResult = await getProviderResult(provider);
       const response = toResponse(providerResult, attempts);
 
-      if (provider === "api-football" || provider === "sportmonks") {
+      if (provider === "api-football" || provider === "sportmonks" || provider === "football-data") {
         writeResultsCache(response);
       }
 
@@ -28,7 +29,7 @@ export async function getResultsResponse(): Promise<ServerResultsResponse> {
       attempts.push(message);
     }
 
-    if (provider === "sportmonks") {
+    if (provider === "football-data") {
       const cached = readResultsCache();
       if (cached) {
         return {
@@ -44,20 +45,29 @@ export async function getResultsResponse(): Promise<ServerResultsResponse> {
 }
 
 function normalizeProvider(value: string | undefined): "auto" | ProviderName {
-  if (value === "api-football" || value === "sportmonks" || value === "manual-real") return value;
+  if (
+    value === "api-football" ||
+    value === "sportmonks" ||
+    value === "football-data" ||
+    value === "manual-real"
+  ) {
+    return value;
+  }
   return "auto";
 }
 
 function getProviderOrder(provider: "auto" | ProviderName): ProviderName[] {
-  if (provider === "api-football") return ["api-football", "sportmonks", "manual-real"];
-  if (provider === "sportmonks") return ["sportmonks", "manual-real"];
+  if (provider === "api-football") return ["api-football", "sportmonks", "football-data", "manual-real"];
+  if (provider === "sportmonks") return ["sportmonks", "football-data", "manual-real"];
+  if (provider === "football-data") return ["football-data", "manual-real"];
   if (provider === "manual-real") return ["manual-real"];
-  return ["api-football", "sportmonks", "manual-real"];
+  return ["api-football", "sportmonks", "football-data", "manual-real"];
 }
 
 async function getProviderResult(provider: ProviderName): Promise<ServerProviderResult> {
   if (provider === "api-football") return getApiFootballResults();
   if (provider === "sportmonks") return getSportmonksResults();
+  if (provider === "football-data") return getFootballDataResults();
   return getManualResults();
 }
 

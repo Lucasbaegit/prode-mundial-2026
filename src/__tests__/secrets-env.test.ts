@@ -7,6 +7,7 @@ describe("secretos y env", () => {
 
     expect(viteEnv).not.toContain("VITE_API_FOOTBALL_KEY");
     expect(viteEnv).not.toContain("VITE_SPORTMONKS_API_TOKEN");
+    expect(viteEnv).not.toContain("VITE_FOOTBALL_DATA_API_TOKEN");
   });
 
   it(".env.example no incluye claves reales", () => {
@@ -14,6 +15,7 @@ describe("secretos y env", () => {
 
     expect(envExample).toContain("API_FOOTBALL_KEY=");
     expect(envExample).toContain("SPORTMONKS_API_TOKEN=");
+    expect(envExample).toContain("FOOTBALL_DATA_API_TOKEN=");
     expect(envExample).not.toContain("TU_API_KEY");
   });
 });

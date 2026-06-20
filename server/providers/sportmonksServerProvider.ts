@@ -59,7 +59,7 @@ export async function getSportmonksResults(): Promise<ServerProviderResult> {
   let hasMore = true;
 
   while (hasMore) {
-    const url = new URL("/fixtures", baseUrl);
+    const url = buildSportmonksUrl(baseUrl, "/fixtures");
     url.searchParams.set("api_token", token);
     url.searchParams.set("include", "participants;state;scores;league;season");
     url.searchParams.set("filters", `fixtureLeagues:${worldCupId}`);
@@ -98,6 +98,12 @@ export async function getSportmonksResults(): Promise<ServerProviderResult> {
     message: "Resultados reales vía Sportmonks.",
     results
   };
+}
+
+function buildSportmonksUrl(baseUrl: string, path: string): URL {
+  const normalizedBaseUrl = baseUrl.replace(/\/+$/, "");
+  const normalizedPath = path.replace(/^\/+/, "");
+  return new URL(`${normalizedBaseUrl}/${normalizedPath}`);
 }
 
 export function mapSportmonksStatus(

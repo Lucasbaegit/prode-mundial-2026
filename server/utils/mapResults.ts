@@ -16,14 +16,14 @@ export interface ExternalFixture {
 export function mapExternalFixturesToResults(
   fixtures: ExternalFixture[],
   matches: Match[],
-  provider: "api-football" | "sportmonks"
+  provider: "api-football" | "sportmonks" | "football-data"
 ): ActualResult[] {
   const updatedAt = new Date().toISOString();
 
   return matches.map((match) => {
-    const fixture = fixtures.find((candidate) => fixtureMatchesLocalMatch(candidate, match));
+    const fixtureMatch = findFixtureMatch(fixtures, match, provider);
 
-    if (!fixture) {
+    if (!fixtureMatch) {
       console.warn(
         `[${provider}] No se pudo mapear ${match.id} ${match.homeTeam} vs ${match.awayTeam}; queda pendiente.`
       );
@@ -38,31 +38,73 @@ export function mapExternalFixturesToResults(
       };
     }
 
+    const { fixture, reversed } = fixtureMatch;
+    const homeGoals = reversed ? fixture.awayGoals : fixture.homeGoals;
+    const awayGoals = reversed ? fixture.homeGoals : fixture.awayGoals;
+
     return {
       matchId: match.id,
       status: fixture.status,
-      homeGoals: fixture.homeGoals,
-      awayGoals: fixture.awayGoals,
+      homeGoals,
+      awayGoals,
       outcome:
-        fixture.status === "finished" ? outcomeFromGoals(fixture.homeGoals, fixture.awayGoals) : null,
+        fixture.status === "finished" ? outcomeFromGoals(homeGoals, awayGoals) : null,
       updatedAt: fixture.updatedAt ?? updatedAt,
       provider
     };
   });
 }
 
-export function hasProviderResults(results: ActualResult[], provider: "api-football" | "sportmonks" | "manual-real"): boolean {
+export function hasProviderResults(
+  results: ActualResult[],
+  provider: "api-football" | "sportmonks" | "football-data" | "manual-real"
+): boolean {
   return results.some((result) => result.provider === provider);
 }
 
-function fixtureMatchesLocalMatch(fixture: ExternalFixture, match: Match): boolean {
+function findFixtureMatch(
+  fixtures: ExternalFixture[],
+  match: Match,
+  provider: "api-football" | "sportmonks" | "football-data"
+): { fixture: ExternalFixture; reversed: boolean } | null {
+  for (const fixture of fixtures) {
+    const direction = getFixtureMatchDirection(fixture, match, {
+      allowExplicitExternalId: provider === "api-football"
+    });
+    if (direction) {
+      return { fixture, reversed: direction === "reversed" };
+    }
+  }
+
+  return null;
+}
+
+export function getFixtureMatchDirection(
+  fixture: ExternalFixture,
+  match: Match,
+  options: { allowExplicitExternalId?: boolean } = {}
+): "direct" | "reversed" | null {
   const explicitExternalId =
     match.apiExternalId ??
     apiFootballMatchMap.find((entry) => entry.matchId === match.id)?.apiExternalId;
-  if (explicitExternalId && String(explicitExternalId) === fixture.externalId) return true;
+  if (
+    options.allowExplicitExternalId &&
+    explicitExternalId &&
+    String(explicitExternalId) === fixture.externalId
+  ) {
+    return "direct";
+  }
 
   const expectedHome = match.apiHomeTeamName ?? match.homeTeam;
   const expectedAway = match.apiAwayTeamName ?? match.awayTeam;
 
-  return teamsMatch(fixture.homeTeam, expectedHome) && teamsMatch(fixture.awayTeam, expectedAway);
+  if (teamsMatch(fixture.homeTeam, expectedHome) && teamsMatch(fixture.awayTeam, expectedAway)) {
+    return "direct";
+  }
+
+  if (teamsMatch(fixture.homeTeam, expectedAway) && teamsMatch(fixture.awayTeam, expectedHome)) {
+    return "reversed";
+  }
+
+  return null;
 }

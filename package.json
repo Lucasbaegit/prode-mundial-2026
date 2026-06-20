@@ -16,6 +16,7 @@
     "preview": "vite preview --host 127.0.0.1",
     "discover:league": "tsx scripts/discoverLeague.ts",
     "discover:sportmonks": "tsx scripts/discoverSportmonksWorldCup.ts",
+    "discover:football-data": "tsx scripts/discoverFootballData.ts",
     "test": "vitest run",
     "validate:data": "tsx scripts/validateData.ts"
   },

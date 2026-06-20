@@ -40,6 +40,25 @@ describe("frontend resultsProvider", () => {
     expect(state.results).toEqual([finishedResult]);
   });
 
+  it("muestra football-data.org como fuente real con polling", async () => {
+    globalThis.fetch = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        source: "football-data",
+        status: "ok",
+        message: "Resultados reales vía football-data.org /matches",
+        updatedAt: "2026-06-20T18:00:00Z",
+        results: [{ ...finishedResult, provider: "football-data" }]
+      })
+    });
+
+    const state = await loadResultsWithFallback();
+
+    expect(state.provider).toBe("football-data");
+    expect(state.label).toBe("Resultados reales vía football-data.org /matches");
+    expect(state.canPoll).toBe(true);
+  });
+
   it("frontend maneja backend no disponible con pending", async () => {
     globalThis.fetch = vi.fn().mockRejectedValue(new Error("connect ECONNREFUSED"));
 

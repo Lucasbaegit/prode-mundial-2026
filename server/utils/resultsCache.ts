@@ -21,7 +21,13 @@ export function readResultsCache(): ServerResultsResponse | null {
 }
 
 export function writeResultsCache(response: ServerResultsResponse): void {
-  if (response.source !== "api-football" && response.source !== "sportmonks") return;
+  if (
+    response.source !== "api-football" &&
+    response.source !== "sportmonks" &&
+    response.source !== "football-data"
+  ) {
+    return;
+  }
   if (!response.results.some((result) => result.provider === response.source)) return;
 
   mkdirSync(dirname(cacheFile), { recursive: true });

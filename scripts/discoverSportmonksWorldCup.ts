@@ -29,7 +29,7 @@ if (!apiToken) {
   console.error("Falta SPORTMONKS_API_TOKEN en .env.local.");
   process.exitCode = 1;
 } else {
-  const url = new URL("/leagues/search/World Cup", baseUrl);
+  const url = buildSportmonksUrl(baseUrl, "/leagues/search/World Cup");
   url.searchParams.set("api_token", apiToken);
   url.searchParams.set("include", "country;seasons");
 
@@ -58,6 +58,12 @@ if (!apiToken) {
     console.error(error instanceof Error ? error.message : error);
     process.exitCode = 1;
   }
+}
+
+function buildSportmonksUrl(baseUrl: string, path: string): URL {
+  const normalizedBaseUrl = baseUrl.replace(/\/+$/, "");
+  const normalizedPath = path.replace(/^\/+/, "");
+  return new URL(`${normalizedBaseUrl}/${normalizedPath}`);
 }
 
 function readEnvLocal(projectRoot: string): EnvValues {

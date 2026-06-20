@@ -16,8 +16,21 @@ export const GROUPS = [
 export type Group = (typeof GROUPS)[number];
 export type Prediction = "L" | "E" | "V" | null;
 export type MatchStatus = "scheduled" | "live" | "finished";
-export type ResultProviderName = "api-football" | "sportmonks" | "manual-real" | "cache" | "mock" | "pending";
-export type RequestedResultsProvider = "auto" | "api-football" | "sportmonks" | "manual-real" | "mock";
+export type ResultProviderName =
+  | "api-football"
+  | "sportmonks"
+  | "football-data"
+  | "manual-real"
+  | "cache"
+  | "mock"
+  | "pending";
+export type RequestedResultsProvider =
+  | "auto"
+  | "api-football"
+  | "sportmonks"
+  | "football-data"
+  | "manual-real"
+  | "mock";
 export type RankingMovement = "up" | "down" | "same";
 
 export interface Match {
