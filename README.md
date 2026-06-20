@@ -38,7 +38,7 @@ npm run validate:data
 Por defecto la app intenta usar API-Football. Copiar `.env.example` a `.env.local` para configurar credenciales reales.
 
 ```env
-VITE_RESULTS_PROVIDER=api-football
+VITE_RESULTS_PROVIDER=auto
 VITE_API_FOOTBALL_KEY=TU_API_KEY
 VITE_API_FOOTBALL_BASE_URL=https://v3.football.api-sports.io
 VITE_API_FOOTBALL_LEAGUE_ID=ID_DEL_MUNDIAL_2026
@@ -48,13 +48,17 @@ VITE_API_FOOTBALL_SEASON=2026
 Valores soportados:
 
 - `VITE_RESULTS_PROVIDER=api-football`: intenta resultados reales via API-Football.
+- `VITE_RESULTS_PROVIDER=sportmonks`: intenta Sportmonks y luego CSV real.
+- `VITE_RESULTS_PROVIDER=manual-real`: usa solo CSV real y luego pending.
+- `VITE_RESULTS_PROVIDER=auto`: API-Football -> Sportmonks -> CSV real -> pending.
 - `VITE_RESULTS_PROVIDER=mock`: modo demo explicito; deja todos los partidos pendientes.
 
-Fallback real:
+Fallback real en modo `auto`:
 
 1. API-Football.
-2. Ultimo cache real.
-3. Todos los partidos pendientes.
+2. Sportmonks.
+3. CSV manual de resultados reales.
+4. Todos los partidos pendientes.
 
 No se usa mock como fallback silencioso.
 
@@ -86,6 +90,33 @@ x-apisports-key: VITE_API_FOOTBALL_KEY
 
 Si los nombres externos no alcanzan para mapear un partido, completar `src/data/apiFootballMatchMap.ts` con el `apiExternalId` real.
 
+API-Football puede reconocer `league=1` World Cup y `season=2026` pero devolver `results=0` para fixtures. En ese caso la app no lo trata como exito completo: avanza a Sportmonks, luego CSV real y finalmente pending.
+
+## Conectar Sportmonks
+
+Agregar en `.env.local`:
+
+```env
+VITE_RESULTS_PROVIDER=auto
+VITE_SPORTMONKS_API_TOKEN=TU_TOKEN
+VITE_SPORTMONKS_BASE_URL=https://api.sportmonks.com/v3/football
+VITE_SPORTMONKS_WORLD_CUP_ID=ID_COMPETICION_WORLD_CUP
+```
+
+El provider usa el endpoint de fixtures de Sportmonks Football API v3:
+
+```txt
+GET /fixtures?filters=fixtureLeagues:{VITE_SPORTMONKS_WORLD_CUP_ID}&include=participants;state;scores;league;season
+```
+
+La autenticacion se envia como `api_token` en query string. Para buscar candidatas:
+
+```bash
+npm run discover:sportmonks
+```
+
+El script lee `.env.local`, consulta Sportmonks y lista ids/nombres/temporadas sin imprimir el token.
+
 ## Cache real
 
 Cuando la API devuelve resultados reales, se guardan en `localStorage`:
@@ -106,6 +137,30 @@ Si falta `VITE_API_FOOTBALL_KEY`, si falta configuracion, o si la API falla y no
 - `outcome: null`
 
 El ranking queda en 0 puntos hasta que existan resultados reales.
+
+## Resultados reales por CSV
+
+Si no hay API disponible, se puede cargar un CSV manual real en:
+
+```txt
+data/results_csv/
+```
+
+Formato:
+
+```csv
+match_id,home_goals,away_goals,status,updated_at
+A1,2,0,finished,2026-06-11T20:00:00Z
+A2,2,1,finished,2026-06-12T03:00:00Z
+```
+
+`status` acepta `scheduled`, `live` o `finished`. Los partidos `finished` requieren goles numericos. Para generar `src/data/generatedResults.ts`:
+
+```bash
+npm run sync:results
+```
+
+`npm run dev` y `npm run build` tambien ejecutan `sync:results` automaticamente.
 
 ## Carga de participantes por CSV
 
@@ -225,8 +280,8 @@ No usa backend.
 ```txt
 src/
   components/       UI reutilizable
-  data/             fixture, participantes, generados CSV, resultados pending, mapa API
-  services/         providers API/cache/pending
+  data/             fixture, participantes, resultados generados CSV, mapa API
+  services/         providers API-Football/Sportmonks/CSV/pending
   types/            tipos del dominio
   utils/            scoring, ranking, validacion, CSV, formato, nombres
   __tests__/        tests unitarios y validacion de datos

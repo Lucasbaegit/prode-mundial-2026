@@ -27,7 +27,7 @@ export function getCachedResults(): CachedResultsPayload | null {
   const rawResults = localStorage.getItem(REAL_RESULTS_CACHE_KEY);
   const updatedAt = localStorage.getItem(REAL_RESULTS_UPDATED_AT_KEY);
   const provider = localStorage.getItem(REAL_RESULTS_PROVIDER_KEY) as ResultProviderName | null;
-  if (!rawResults || !updatedAt || provider !== "api-football") return null;
+  if (!rawResults || !updatedAt || !isCacheableRealProvider(provider)) return null;
 
   try {
     const results = JSON.parse(rawResults) as ActualResult[];
@@ -42,14 +42,18 @@ export function getCachedResults(): CachedResultsPayload | null {
   }
 }
 
-export function saveRealResultsToCache(results: ActualResult[]): void {
+export function saveRealResultsToCache(results: ActualResult[], provider: Extract<ResultProviderName, "api-football" | "sportmonks">): void {
   if (!canUseLocalStorage()) return;
-  if (!results.some((result) => result.provider === "api-football")) return;
+  if (!results.some((result) => result.provider === provider)) return;
 
   const updatedAt = new Date().toISOString();
   localStorage.setItem(REAL_RESULTS_CACHE_KEY, JSON.stringify(results));
   localStorage.setItem(REAL_RESULTS_UPDATED_AT_KEY, updatedAt);
-  localStorage.setItem(REAL_RESULTS_PROVIDER_KEY, "api-football");
+  localStorage.setItem(REAL_RESULTS_PROVIDER_KEY, provider);
+}
+
+function isCacheableRealProvider(provider: ResultProviderName | null): provider is "api-football" | "sportmonks" {
+  return provider === "api-football" || provider === "sportmonks";
 }
 
 function canUseLocalStorage(): boolean {

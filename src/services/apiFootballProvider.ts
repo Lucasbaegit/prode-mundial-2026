@@ -65,6 +65,9 @@ const scheduledStatuses = new Set(["NS", "TBD", "PST", "CANC", "ABD", "AWD", "WO
 export const apiFootballProvider: ResultsProvider = {
   async getResults() {
     const fixtures = await fetchApiFootballFixtures();
+    if (fixtures.length === 0) {
+      throw new Error("no-data: API-Football conectada, pero sin fixtures disponibles.");
+    }
     return transformApiFootballFixtures(fixtures, localMatches);
   }
 };

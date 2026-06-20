@@ -5,12 +5,14 @@
   "type": "module",
   "scripts": {
     "sync:participants": "tsx scripts/syncParticipantsFromCsv.ts",
-    "predev": "npm run sync:participants",
+    "sync:results": "tsx scripts/syncResultsFromCsv.ts",
+    "predev": "npm run sync:participants && npm run sync:results",
     "dev": "vite --host 127.0.0.1",
-    "prebuild": "npm run sync:participants",
+    "prebuild": "npm run sync:participants && npm run sync:results",
     "build": "tsc -b && vite build",
     "preview": "vite preview --host 127.0.0.1",
     "discover:league": "tsx scripts/discoverLeague.ts",
+    "discover:sportmonks": "tsx scripts/discoverSportmonksWorldCup.ts",
     "test": "vitest run",
     "validate:data": "tsx scripts/validateData.ts"
   },
