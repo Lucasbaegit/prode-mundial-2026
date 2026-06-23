@@ -31,10 +31,7 @@ export async function loadResultsWithFallback(): Promise<ResultsLoadState> {
       message: payload.message,
       error: payload.status === "error" ? payload.message : undefined,
       updatedAt: payload.updatedAt,
-      canPoll:
-        payload.source === "api-football" ||
-        payload.source === "sportmonks" ||
-        payload.source === "football-data"
+      canPoll: payload.source === "football-data"
     };
   } catch (error) {
     const message = error instanceof Error ? error.message : "No se pudo conectar al backend local.";
@@ -54,10 +51,8 @@ export async function loadResultsWithFallback(): Promise<ResultsLoadState> {
 }
 
 function getBackendLabel(payload: BackendResultsResponse): string {
-  if (payload.source === "api-football") return "Resultados reales vía API-Football";
-  if (payload.source === "sportmonks") return "Resultados reales vía Sportmonks";
-  if (payload.source === "football-data") return "Resultados reales vía football-data.org /matches";
-  if (payload.source === "manual-real") return "Resultados reales desde CSV";
-  if (payload.source === "cache") return "Backend local conectado: usando cache real";
+  if (payload.source === "football-data") return "Resultados reales vía football-data.org";
+  if (payload.source === "manual-real") return "Usando CSV real";
+  if (payload.source === "cache") return "Usando cache real";
   return "Sin fuente real: partidos pendientes";
 }

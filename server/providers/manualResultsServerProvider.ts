@@ -8,7 +8,7 @@ export async function getManualResults(): Promise<ServerProviderResult> {
 
   return {
     source: "manual-real",
-    message: "APIs sin datos; usando CSV real.",
+    message: "Usando CSV real",
     results: generatedResults
   };
 }

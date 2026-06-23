@@ -13,9 +13,10 @@ describe("secretos y env", () => {
   it(".env.example no incluye claves reales", () => {
     const envExample = readFileSync(".env.example", "utf8");
 
-    expect(envExample).toContain("API_FOOTBALL_KEY=");
-    expect(envExample).toContain("SPORTMONKS_API_TOKEN=");
     expect(envExample).toContain("FOOTBALL_DATA_API_TOKEN=");
+    expect(envExample).toContain("RESULTS_PROVIDER=football-data");
+    expect(envExample).not.toContain("API_FOOTBALL_KEY=");
+    expect(envExample).not.toContain("SPORTMONKS_API_TOKEN=");
     expect(envExample).not.toContain("TU_API_KEY");
   });
 });

@@ -26,7 +26,7 @@ describe("frontend resultsProvider", () => {
       json: async () => ({
         source: "manual-real",
         status: "ok",
-        message: "APIs sin datos; usando CSV real.",
+        message: "Usando CSV real",
         updatedAt: "2026-06-11T20:00:00Z",
         results: [finishedResult]
       })
@@ -36,7 +36,7 @@ describe("frontend resultsProvider", () => {
 
     expect(globalThis.fetch).toHaveBeenCalledWith("http://localhost:8787/api/results");
     expect(state.provider).toBe("manual-real");
-    expect(state.label).toBe("Resultados reales desde CSV");
+    expect(state.label).toBe("Usando CSV real");
     expect(state.results).toEqual([finishedResult]);
   });
 
@@ -46,7 +46,7 @@ describe("frontend resultsProvider", () => {
       json: async () => ({
         source: "football-data",
         status: "ok",
-        message: "Resultados reales vía football-data.org /matches",
+        message: "Resultados reales vía football-data.org",
         updatedAt: "2026-06-20T18:00:00Z",
         results: [{ ...finishedResult, provider: "football-data" }]
       })
@@ -55,7 +55,7 @@ describe("frontend resultsProvider", () => {
     const state = await loadResultsWithFallback();
 
     expect(state.provider).toBe("football-data");
-    expect(state.label).toBe("Resultados reales vía football-data.org /matches");
+    expect(state.label).toBe("Resultados reales vía football-data.org");
     expect(state.canPoll).toBe(true);
   });
 

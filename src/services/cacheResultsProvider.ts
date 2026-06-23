@@ -42,7 +42,7 @@ export function getCachedResults(): CachedResultsPayload | null {
   }
 }
 
-type CacheableRealProvider = Extract<ResultProviderName, "api-football" | "sportmonks" | "football-data">;
+type CacheableRealProvider = Extract<ResultProviderName, "football-data">;
 
 export function saveRealResultsToCache(results: ActualResult[], provider: CacheableRealProvider): void {
   if (!canUseLocalStorage()) return;
@@ -55,7 +55,7 @@ export function saveRealResultsToCache(results: ActualResult[], provider: Cachea
 }
 
 function isCacheableRealProvider(provider: ResultProviderName | null): provider is CacheableRealProvider {
-  return provider === "api-football" || provider === "sportmonks" || provider === "football-data";
+  return provider === "football-data";
 }
 
 function canUseLocalStorage(): boolean {

@@ -1,32 +1,31 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import type { ActualResult } from "../types/prode";
-
-const apiResult: ActualResult = {
-  matchId: "A1",
-  status: "finished",
-  homeGoals: 1,
-  awayGoals: 0,
-  outcome: "L",
-  provider: "api-football",
-  updatedAt: "2026-06-11T20:00:00Z"
-};
-
-const sportmonksResult: ActualResult = {
-  ...apiResult,
-  provider: "sportmonks"
-};
+import type { ServerResultsResponse } from "../../server/types";
 
 const footballDataResult: ActualResult = {
-  ...apiResult,
-  provider: "football-data"
+  matchId: "C4",
+  status: "finished",
+  homeGoals: 3,
+  awayGoals: 0,
+  outcome: "L",
+  provider: "football-data",
+  updatedAt: "2026-06-20T18:00:00Z"
 };
 
 const manualResult: ActualResult = {
-  ...apiResult,
+  ...footballDataResult,
   provider: "manual-real"
 };
 
-describe("server results pipeline", () => {
+const cachedResponse: ServerResultsResponse = {
+  source: "cache",
+  status: "ok",
+  message: "Usando cache real",
+  updatedAt: "2026-06-20T18:00:00Z",
+  results: [footballDataResult]
+};
+
+describe("server results pipeline simplificado", () => {
   afterEach(() => {
     vi.resetModules();
     vi.unstubAllEnvs();
@@ -37,131 +36,18 @@ describe("server results pipeline", () => {
     vi.doUnmock("../../server/utils/resultsCache");
   });
 
-  it("API-Football results=0 pasa a Sportmonks", async () => {
-    vi.stubEnv("RESULTS_PROVIDER", "auto");
-    vi.doMock("../../server/providers/apiFootballServerProvider", () => ({
-      getApiFootballResults: vi.fn().mockRejectedValue(new Error("API-Football conectada, pero sin fixtures disponibles."))
-    }));
-    vi.doMock("../../server/providers/sportmonksServerProvider", () => ({
-      getSportmonksResults: vi.fn().mockResolvedValue({
-        source: "sportmonks",
-        message: "Resultados reales vía Sportmonks.",
-        results: [sportmonksResult]
-      })
-    }));
-    vi.doMock("../../server/providers/footballDataServerProvider", () => ({
-      getFootballDataResults: vi.fn().mockRejectedValue(
-        new Error("football-data.org conectado, pero sin partidos coincidentes con el fixture local.")
-      )
-    }));
-    vi.doMock("../../server/providers/manualResultsServerProvider", () => ({
-      getManualResults: vi.fn().mockRejectedValue(new Error("missing csv"))
-    }));
-    vi.doMock("../../server/utils/resultsCache", () => ({
-      readResultsCache: vi.fn().mockReturnValue(null),
-      writeResultsCache: vi.fn()
-    }));
-
-    const { getResultsResponse } = await import("../../server/resultsPipeline");
-    const response = await getResultsResponse();
-
-    expect(response.source).toBe("sportmonks");
-    expect(response.status).toBe("ok");
-  });
-
-  it("Sportmonks sin datos pasa a football-data.org", async () => {
-    vi.stubEnv("RESULTS_PROVIDER", "auto");
-    vi.doMock("../../server/providers/apiFootballServerProvider", () => ({
-      getApiFootballResults: vi.fn().mockRejectedValue(new Error("API-Football conectada, pero sin fixtures disponibles."))
-    }));
-    vi.doMock("../../server/providers/sportmonksServerProvider", () => ({
-      getSportmonksResults: vi.fn().mockRejectedValue(new Error("Sportmonks: respuesta valida, pero data vacia."))
-    }));
-    vi.doMock("../../server/providers/footballDataServerProvider", () => ({
-      getFootballDataResults: vi.fn().mockResolvedValue({
-        source: "football-data",
-        message: "Resultados reales via football-data.org /matches",
-        results: [footballDataResult]
-      })
-    }));
-    vi.doMock("../../server/providers/manualResultsServerProvider", () => ({
-      getManualResults: vi.fn().mockRejectedValue(new Error("missing csv"))
-    }));
-    vi.doMock("../../server/utils/resultsCache", () => ({
-      readResultsCache: vi.fn().mockReturnValue(null),
-      writeResultsCache: vi.fn()
-    }));
-
-    const { getResultsResponse } = await import("../../server/resultsPipeline");
-    const response = await getResultsResponse();
-
-    expect(response.source).toBe("football-data");
-    expect(response.message).toContain("football-data.org /matches");
-  });
-
-  it("Sportmonks NetworkError no ocurre en browser y server lo maneja como fallback a CSV", async () => {
-    vi.stubEnv("RESULTS_PROVIDER", "sportmonks");
-    vi.doMock("../../server/providers/footballDataServerProvider", () => ({
-      getFootballDataResults: vi.fn().mockRejectedValue(
-        new Error("football-data.org conectado, pero sin partidos coincidentes con el fixture local.")
-      )
-    }));
-    vi.doMock("../../server/providers/sportmonksServerProvider", () => ({
-      getSportmonksResults: vi.fn().mockRejectedValue(new Error("Sportmonks: respuesta válida, pero data vacía."))
-    }));
-    vi.doMock("../../server/providers/manualResultsServerProvider", () => ({
-      getManualResults: vi.fn().mockResolvedValue({
-        source: "manual-real",
-        message: "APIs sin datos; usando CSV real.",
-        results: [manualResult]
-      })
-    }));
-    vi.doMock("../../server/utils/resultsCache", () => ({
-      readResultsCache: vi.fn().mockReturnValue(null),
-      writeResultsCache: vi.fn()
-    }));
-
-    const { getResultsResponse } = await import("../../server/resultsPipeline");
-    const response = await getResultsResponse();
-
-    expect(response.source).toBe("manual-real");
-    expect(response.message).toContain("APIs sin datos");
-  });
-
-  it("backend sin tokens ni CSV devuelve pending", async () => {
-    vi.stubEnv("RESULTS_PROVIDER", "auto");
-    vi.doMock("../../server/providers/apiFootballServerProvider", () => ({
-      getApiFootballResults: vi.fn().mockRejectedValue(new Error("API-Football: token faltante."))
-    }));
-    vi.doMock("../../server/providers/sportmonksServerProvider", () => ({
-      getSportmonksResults: vi.fn().mockRejectedValue(new Error("Sportmonks: token faltante."))
-    }));
-    vi.doMock("../../server/providers/footballDataServerProvider", () => ({
-      getFootballDataResults: vi.fn().mockRejectedValue(new Error("football-data.org: token faltante."))
-    }));
-    vi.doMock("../../server/providers/manualResultsServerProvider", () => ({
-      getManualResults: vi.fn().mockRejectedValue(new Error("CSV manual: no hay resultados reales sincronizados."))
-    }));
-    vi.doMock("../../server/utils/resultsCache", () => ({
-      readResultsCache: vi.fn().mockReturnValue(null),
-      writeResultsCache: vi.fn()
-    }));
-
-    const { getResultsResponse } = await import("../../server/resultsPipeline");
-    const response = await getResultsResponse();
-
-    expect(response.source).toBe("pending");
-    expect(response.status).toBe("no-data");
-    expect(response.results).toHaveLength(72);
-  });
-
-  it("football-data.org OK guarda cache y responde football-data", async () => {
-    vi.stubEnv("RESULTS_PROVIDER", "football-data");
+  it("usa football-data como provider activo y no ejecuta API-Football ni Sportmonks", async () => {
+    const getApiFootballResults = vi.fn();
+    const getSportmonksResults = vi.fn();
     const writeResultsCache = vi.fn();
+
+    vi.stubEnv("RESULTS_PROVIDER", "auto");
+    vi.doMock("../../server/providers/apiFootballServerProvider", () => ({ getApiFootballResults }));
+    vi.doMock("../../server/providers/sportmonksServerProvider", () => ({ getSportmonksResults }));
     vi.doMock("../../server/providers/footballDataServerProvider", () => ({
       getFootballDataResults: vi.fn().mockResolvedValue({
         source: "football-data",
-        message: "Resultados reales via football-data.org /matches",
+        message: "Resultados reales vía football-data.org",
         results: [footballDataResult]
       })
     }));
@@ -177,31 +63,78 @@ describe("server results pipeline", () => {
     const response = await getResultsResponse();
 
     expect(response.source).toBe("football-data");
+    expect(response.message).toBe("Resultados reales vía football-data.org");
     expect(writeResultsCache).toHaveBeenCalled();
+    expect(getApiFootballResults).not.toHaveBeenCalled();
+    expect(getSportmonksResults).not.toHaveBeenCalled();
   });
 
-  it("API-Football OK guarda cache y responde api-football", async () => {
-    vi.stubEnv("RESULTS_PROVIDER", "api-football");
-    const writeResultsCache = vi.fn();
-    vi.doMock("../../server/providers/apiFootballServerProvider", () => ({
-      getApiFootballResults: vi.fn().mockResolvedValue({
-        source: "api-football",
-        message: "Resultados reales vía API-Football.",
-        results: [apiResult]
-      })
+  it("usa cache real si football-data falla", async () => {
+    vi.stubEnv("RESULTS_PROVIDER", "football-data");
+    vi.doMock("../../server/providers/footballDataServerProvider", () => ({
+      getFootballDataResults: vi.fn().mockRejectedValue(new Error("football-data.org conectado, pero sin partidos coincidentes."))
     }));
-    vi.doMock("../../server/providers/sportmonksServerProvider", () => ({
-      getSportmonksResults: vi.fn()
+    vi.doMock("../../server/providers/manualResultsServerProvider", () => ({
+      getManualResults: vi.fn()
     }));
     vi.doMock("../../server/utils/resultsCache", () => ({
-      readResultsCache: vi.fn().mockReturnValue(null),
-      writeResultsCache
+      readResultsCache: vi.fn().mockReturnValue(cachedResponse),
+      writeResultsCache: vi.fn()
     }));
 
     const { getResultsResponse } = await import("../../server/resultsPipeline");
     const response = await getResultsResponse();
 
-    expect(response.source).toBe("api-football");
-    expect(writeResultsCache).toHaveBeenCalled();
+    expect(response.source).toBe("cache");
+    expect(response.message).toBe("Usando cache real");
+    expect(response.results).toEqual([footballDataResult]);
+  });
+
+  it("usa CSV real si football-data falla y no hay cache", async () => {
+    vi.stubEnv("RESULTS_PROVIDER", "football-data");
+    vi.doMock("../../server/providers/footballDataServerProvider", () => ({
+      getFootballDataResults: vi.fn().mockRejectedValue(new Error("football-data.org conectado, pero sin partidos coincidentes."))
+    }));
+    vi.doMock("../../server/providers/manualResultsServerProvider", () => ({
+      getManualResults: vi.fn().mockResolvedValue({
+        source: "manual-real",
+        message: "Usando CSV real",
+        results: [manualResult]
+      })
+    }));
+    vi.doMock("../../server/utils/resultsCache", () => ({
+      readResultsCache: vi.fn().mockReturnValue(null),
+      writeResultsCache: vi.fn()
+    }));
+
+    const { getResultsResponse } = await import("../../server/resultsPipeline");
+    const response = await getResultsResponse();
+
+    expect(response.source).toBe("manual-real");
+    expect(response.message).toBe("Usando CSV real");
+  });
+
+  it("sin token ni CSV devuelve pending sin mencionar API-Football ni Sportmonks", async () => {
+    vi.stubEnv("RESULTS_PROVIDER", "football-data");
+    vi.doMock("../../server/providers/footballDataServerProvider", () => ({
+      getFootballDataResults: vi.fn().mockRejectedValue(new Error("football-data.org sin token."))
+    }));
+    vi.doMock("../../server/providers/manualResultsServerProvider", () => ({
+      getManualResults: vi.fn().mockRejectedValue(new Error("CSV manual: no hay resultados reales sincronizados."))
+    }));
+    vi.doMock("../../server/utils/resultsCache", () => ({
+      readResultsCache: vi.fn().mockReturnValue(null),
+      writeResultsCache: vi.fn()
+    }));
+
+    const { getResultsResponse } = await import("../../server/resultsPipeline");
+    const response = await getResultsResponse();
+
+    expect(response.source).toBe("pending");
+    expect(response.status).toBe("no-data");
+    expect(response.results).toHaveLength(72);
+    expect(response.message).toContain("football-data.org sin token");
+    expect(response.message).not.toContain("API-Football");
+    expect(response.message).not.toContain("Sportmonks");
   });
 });

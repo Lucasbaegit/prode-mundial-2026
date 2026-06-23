@@ -1,16 +1,19 @@
 # Prode Mundial 2026
 
-App local para gestionar un Prode Mundial FIFA 2026 amistoso con React/Vite y un backend local Node/Express para consultar resultados reales sin exponer tokens en el navegador.
+App local para gestionar un Prode Mundial FIFA 2026 con React/Vite y un backend local Node/Express. El backend consulta resultados reales sin exponer tokens en el navegador.
 
 ## Arquitectura
 
 ```txt
 Frontend React/Vite
   -> Backend local http://localhost:8787/api/results
-  -> API-Football / Sportmonks / football-data.org / CSV real / Pending
+  -> football-data.org
+  -> Cache real
+  -> CSV real
+  -> Pending
 ```
 
-El frontend no llama API-Football, Sportmonks ni football-data.org directamente. Las claves privadas se leen solo en el backend desde `.env.local`.
+El frontend solo llama al backend local. `FOOTBALL_DATA_API_TOKEN` se lee desde `.env.local` en Node, nunca como variable `VITE_*`.
 
 ## Instalacion
 
@@ -23,30 +26,66 @@ npm install
 Crear `.env.local` en la raiz:
 
 ```env
-# Frontend publica
 VITE_RESULTS_API_URL=http://localhost:8787/api/results
 
-# API-Football privada, usada solo por backend local
-API_FOOTBALL_KEY=
-API_FOOTBALL_BASE_URL=https://v3.football.api-sports.io
-API_FOOTBALL_LEAGUE_ID=1
-API_FOOTBALL_SEASON=2026
+RESULTS_PROVIDER=football-data
 
-# Sportmonks privada, usada solo por backend local
-SPORTMONKS_API_TOKEN=
-SPORTMONKS_BASE_URL=https://api.sportmonks.com/v3/football
-SPORTMONKS_WORLD_CUP_ID=26618
-
-# football-data.org privada, usada solo por backend local
-FOOTBALL_DATA_API_TOKEN=
+FOOTBALL_DATA_API_TOKEN=TU_TOKEN_REAL
 FOOTBALL_DATA_BASE_URL=https://api.football-data.org/v4
 FOOTBALL_DATA_COMPETITION_CODE=WC
-
-# Provider backend: auto | api-football | sportmonks | football-data | manual-real
-RESULTS_PROVIDER=auto
+FOOTBALL_DATA_DATE_FROM=2026-06-11
+FOOTBALL_DATA_DATE_TO=2026-06-28
+FOOTBALL_DATA_DATE_WINDOWS=2026-06-11:2026-06-15,2026-06-16:2026-06-20,2026-06-21:2026-06-24,2026-06-25:2026-06-28
 ```
 
-`.env.local` esta ignorado por Git. No uses `VITE_` para tokens privados.
+Para conseguir token, crear una cuenta en football-data.org y copiar el API token personal. `.env.local` esta ignorado por Git.
+
+## Pipeline de resultados
+
+Orden activo del backend:
+
+1. football-data.org
+2. Cache real en `data/cache/results-cache.json`
+3. CSV real en `data/results_csv/`
+4. Pending results
+
+No se usan resultados inventados. API-Football y Sportmonks quedaron fuera del flujo activo porque API-Football devolvia 0 fixtures para World Cup 2026 y Sportmonks no estaba disponible/sin token util en esta etapa.
+
+## football-data.org
+
+El provider intenta primero una sola request con rango completo:
+
+```txt
+GET /matches?dateFrom=2026-06-11&dateTo=2026-06-28
+Header: X-Auth-Token: FOOTBALL_DATA_API_TOKEN
+```
+
+Si el rango completo falla por permisos, limites o error controlado, prueba ventanas de fechas. Por defecto:
+
+```txt
+2026-06-11:2026-06-15
+2026-06-16:2026-06-20
+2026-06-21:2026-06-24
+2026-06-25:2026-06-28
+```
+
+Las ventanas se pueden configurar con:
+
+```env
+FOOTBALL_DATA_DATE_WINDOWS=2026-06-11:2026-06-15,2026-06-16:2026-06-20,2026-06-21:2026-06-24,2026-06-25:2026-06-28
+```
+
+El limite esperado por actualizacion manual es 1 request si el rango completo funciona, o hasta 5 requests si el rango falla y se usan 4 ventanas. Si una ventana responde `429`, se cortan las ventanas restantes para cuidar el rate limit. Solo si no hay rate limit y no se obtuvo nada util, prueba `/matches` sin rango como fallback, que puede traer solo partidos del dia/current.
+
+Despues de juntar respuestas, deduplica por id externo de football-data, filtra estrictamente contra los 72 partidos locales A1-L6 por nombres normalizados y descarta competiciones ajenas.
+
+Para descubrir coincidencias:
+
+```bash
+npm run discover:football-data
+```
+
+El discovery imprime estrategia usada, ventanas OK, total externo devuelto, total coincidente, primeros 20 partidos locales detectados, status y goles. No imprime tokens.
 
 ## Correr
 
@@ -57,117 +96,18 @@ npm run dev
 Ese comando levanta:
 
 - backend: `http://localhost:8787`
-- frontend: `http://127.0.0.1:5173`
+- frontend Vite: `http://127.0.0.1:5175`
 
-Tambien se pueden correr por separado:
-
-```bash
-npm run dev:server
-npm run dev:client
-```
-
-## Probar backend
+Probar backend:
 
 ```txt
 http://localhost:8787/api/health
 http://localhost:8787/api/results
 ```
 
-`/api/results` devuelve:
-
-```json
-{
-  "source": "api-football",
-  "status": "ok",
-  "message": "Resultados reales via API-Football.",
-  "updatedAt": "2026-06-20T00:00:00.000Z",
-  "results": []
-}
-```
-
-## Fallback de resultados
-
-Orden del backend:
-
-1. API-Football
-2. Sportmonks
-3. football-data.org
-4. Cache real en `data/cache/results-cache.json`
-5. CSV manual real
-6. Pending results
-
-API-Football puede reconocer `league=1` World Cup y `season=2026` pero devolver `results=0`. En ese caso no se considera exito y se prueba Sportmonks.
-
-No se usan resultados inventados.
-
-## Sportmonks
-
-Configurar:
-
-```env
-SPORTMONKS_API_TOKEN=
-SPORTMONKS_BASE_URL=https://api.sportmonks.com/v3/football
-SPORTMONKS_WORLD_CUP_ID=26618
-```
-
-El backend consulta fixtures con:
-
-```txt
-GET /fixtures?filters=fixtureLeagues:{SPORTMONKS_WORLD_CUP_ID}&include=participants;state;scores;league;season
-```
-
-Para buscar candidatas:
-
-```bash
-npm run discover:sportmonks
-```
-
-El script no imprime tokens.
-
-## football-data.org
-
-Configurar:
-
-```env
-FOOTBALL_DATA_API_TOKEN=
-FOOTBALL_DATA_BASE_URL=https://api.football-data.org/v4
-FOOTBALL_DATA_COMPETITION_CODE=WC
-```
-
-El backend usa primero el endpoint global:
-
-```txt
-GET /matches
-```
-
-Ese endpoint devuelve partidos del dia mezclados de varias competiciones, por eso el provider filtra contra los 72 partidos del fixture local por nombres normalizados y descarta encuentros ajenos como Londrina EC, Ceara SC o Vila Nova FC. Si no hay coincidencias en `/matches`, puede probar `/competitions/{FOOTBALL_DATA_COMPETITION_CODE}/matches` y luego sigue fallback.
-
-Para descubrir coincidencias sin imprimir tokens:
-
-```bash
-npm run discover:football-data
-```
-
-## API-Football
-
-Configurar:
-
-```env
-API_FOOTBALL_KEY=
-API_FOOTBALL_BASE_URL=https://v3.football.api-sports.io
-API_FOOTBALL_LEAGUE_ID=1
-API_FOOTBALL_SEASON=2026
-```
-
-Para listar ligas candidatas:
-
-```bash
-npm run discover:league
-```
-
 ## Resultados reales por CSV
 
-Si las APIs no tienen datos, cargar CSV real en:
+Si football-data.org no tiene datos o no hay token, cargar CSV real en:
 
 ```txt
 data/results_csv/
@@ -216,8 +156,8 @@ npm run sync:results
 npm run validate:data
 npm run test
 npm run build
-npm run server
 npm run discover:football-data
+npm run dev
 ```
 
 ## Scoring
@@ -227,13 +167,3 @@ npm run discover:football-data
 - `scheduled` = 0 puntos.
 - `live` = 0 puntos.
 - prediccion `null` = 0 puntos y figura como sin marcar.
-
-## Estructura
-
-```txt
-server/              backend local Express y providers privados
-src/                 frontend React/Vite
-data/prodes_csv/     participantes CSV
-data/results_csv/    resultados reales CSV
-data/cache/          cache real local ignorado por Git
-```

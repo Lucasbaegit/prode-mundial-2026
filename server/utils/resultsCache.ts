@@ -13,7 +13,7 @@ export function readResultsCache(): ServerResultsResponse | null {
     return {
       ...payload,
       source: "cache",
-      message: `Cache real: ${payload.message}`
+      message: "Usando cache real"
     };
   } catch {
     return null;
@@ -21,13 +21,7 @@ export function readResultsCache(): ServerResultsResponse | null {
 }
 
 export function writeResultsCache(response: ServerResultsResponse): void {
-  if (
-    response.source !== "api-football" &&
-    response.source !== "sportmonks" &&
-    response.source !== "football-data"
-  ) {
-    return;
-  }
+  if (response.source !== "football-data") return;
   if (!response.results.some((result) => result.provider === response.source)) return;
 
   mkdirSync(dirname(cacheFile), { recursive: true });
