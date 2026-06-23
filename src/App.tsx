@@ -44,11 +44,11 @@ export default function App() {
   const [loading, setLoading] = useState(true);
   const [refreshError, setRefreshError] = useState<string | null>(null);
 
-  const refreshResults = useCallback(async () => {
+  const refreshResults = useCallback(async (forceRefresh = false) => {
     setLoading(true);
     setRefreshError(null);
     try {
-      const nextState = await loadResultsWithFallback();
+      const nextState = await loadResultsWithFallback(forceRefresh);
       setLoadState(nextState);
     } catch (error) {
       setRefreshError(error instanceof Error ? error.message : "No se pudieron cargar resultados.");
@@ -65,7 +65,7 @@ export default function App() {
     if (!loadState?.canPoll) return;
 
     const intervalId = window.setInterval(() => {
-      void refreshResults();
+      void refreshResults(false);
     }, 60_000);
 
     return () => window.clearInterval(intervalId);
@@ -156,7 +156,7 @@ export default function App() {
               {participantsLoadInfo.sourceLabel}
             </span>
           </div>
-          <ProviderStatus loadState={loadState} loading={loading} onRefresh={refreshResults} />
+          <ProviderStatus loadState={loadState} loading={loading} onRefresh={() => refreshResults(true)} />
         </div>
 
         {loading && !loadState ? <LoadingState /> : null}
@@ -172,6 +172,7 @@ export default function App() {
           summary={tournamentSummary}
           keyPendingMatches={keyPendingMatches}
           nextPointsInPlay={nextPointsInPlay}
+          resultsMeta={loadState?.meta}
         />
 
         {selectedSummary ? <SummaryCards summary={selectedSummary} /> : null}

@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import type { ActualResult } from "../types/prode";
+import type { ActualResult, ResultsMeta } from "../types/prode";
 import { loadResultsWithFallback } from "../services/resultsProvider";
 
 const finishedResult: ActualResult = {
@@ -12,6 +12,20 @@ const finishedResult: ActualResult = {
   updatedAt: "2026-06-11T20:00:00Z"
 };
 
+const baseMeta: ResultsMeta = {
+  totalMatches: 72,
+  realResultsCount: 1,
+  finishedCount: 1,
+  liveCount: 0,
+  scheduledCount: 71,
+  pendingWithoutRealDataCount: 71,
+  provider: "manual-real",
+  cacheHit: false,
+  cacheAgeSeconds: null,
+  cacheTtlSeconds: 600,
+  fetchedFromProvider: false
+};
+
 describe("frontend resultsProvider", () => {
   afterEach(() => {
     vi.unstubAllEnvs();
@@ -19,7 +33,7 @@ describe("frontend resultsProvider", () => {
     Reflect.deleteProperty(globalThis, "fetch");
   });
 
-  it("consume el backend local y normaliza ResultsLoadState", async () => {
+  it("consume el backend local y normaliza ResultsLoadState con meta", async () => {
     vi.stubEnv("VITE_RESULTS_API_URL", "http://localhost:8787/api/results");
     globalThis.fetch = vi.fn().mockResolvedValue({
       ok: true,
@@ -28,7 +42,8 @@ describe("frontend resultsProvider", () => {
         status: "ok",
         message: "Usando CSV real",
         updatedAt: "2026-06-11T20:00:00Z",
-        results: [finishedResult]
+        results: [finishedResult],
+        meta: baseMeta
       })
     });
 
@@ -36,11 +51,13 @@ describe("frontend resultsProvider", () => {
 
     expect(globalThis.fetch).toHaveBeenCalledWith("http://localhost:8787/api/results");
     expect(state.provider).toBe("manual-real");
-    expect(state.label).toBe("Usando CSV real");
+    expect(state.label).toBe("Resultados reales desde CSV");
     expect(state.results).toEqual([finishedResult]);
+    expect(state.meta?.realResultsCount).toBe(1);
   });
 
-  it("muestra football-data.org como fuente real con polling", async () => {
+  it("forceRefresh agrega refresh=true para el boton actualizar", async () => {
+    vi.stubEnv("VITE_RESULTS_API_URL", "http://localhost:8787/api/results");
     globalThis.fetch = vi.fn().mockResolvedValue({
       ok: true,
       json: async () => ({
@@ -48,12 +65,14 @@ describe("frontend resultsProvider", () => {
         status: "ok",
         message: "Resultados reales vía football-data.org",
         updatedAt: "2026-06-20T18:00:00Z",
-        results: [{ ...finishedResult, provider: "football-data" }]
+        results: [{ ...finishedResult, provider: "football-data" }],
+        meta: { ...baseMeta, provider: "football-data", fetchedFromProvider: true }
       })
     });
 
-    const state = await loadResultsWithFallback();
+    const state = await loadResultsWithFallback(true);
 
+    expect(globalThis.fetch).toHaveBeenCalledWith("http://localhost:8787/api/results?refresh=true");
     expect(state.provider).toBe("football-data");
     expect(state.label).toBe("Resultados reales vía football-data.org");
     expect(state.canPoll).toBe(true);

@@ -29,6 +29,7 @@ Crear `.env.local` en la raiz:
 VITE_RESULTS_API_URL=http://localhost:8787/api/results
 
 RESULTS_PROVIDER=football-data
+RESULTS_CACHE_TTL_SECONDS=600
 
 FOOTBALL_DATA_API_TOKEN=TU_TOKEN_REAL
 FOOTBALL_DATA_BASE_URL=https://api.football-data.org/v4
@@ -50,6 +51,41 @@ Orden activo del backend:
 4. Pending results
 
 No se usan resultados inventados. API-Football y Sportmonks quedaron fuera del flujo activo porque API-Football devolvia 0 fixtures para World Cup 2026 y Sportmonks no estaba disponible/sin token util en esta etapa.
+
+## Cache TTL
+
+El backend guarda cache real en `data/cache/results-cache.json` cuando la fuente es `football-data.org` o CSV real. Por defecto:
+
+```env
+RESULTS_CACHE_TTL_SECONDS=600
+```
+
+Mientras la cache tenga menos de ese TTL, `GET /api/results` responde desde cache sin consultar football-data.org. Esto evita gastar requests al abrir la app o refrescar la pagina muchas veces.
+
+El boton "Actualizar resultados reales" llama:
+
+```txt
+GET /api/results?refresh=true
+```
+
+Ese refresh ignora el TTL y consulta football-data.org. Si la API falla y hay cache vencida, el backend usa esa cache como fallback e informa `cacheAgeSeconds`, `cacheTtlSeconds`, `cacheHit` y `fetchedFromProvider` en `meta`.
+
+`/api/results` incluye metadata para la UI:
+
+```json
+{
+  "meta": {
+    "totalMatches": 72,
+    "realResultsCount": 53,
+    "pendingWithoutRealDataCount": 19,
+    "provider": "football-data",
+    "cacheHit": false,
+    "cacheAgeSeconds": null,
+    "cacheTtlSeconds": 600,
+    "fetchedFromProvider": true
+  }
+}
+```
 
 ## football-data.org
 
@@ -103,6 +139,7 @@ Probar backend:
 ```txt
 http://localhost:8787/api/health
 http://localhost:8787/api/results
+http://localhost:8787/api/results?refresh=true
 ```
 
 ## Resultados reales por CSV

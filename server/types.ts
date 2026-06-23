@@ -1,4 +1,4 @@
-import type { ActualResult, ResultProviderName } from "../src/types/prode";
+import type { ActualResult, ResultProviderName, ResultsMeta } from "../src/types/prode";
 
 export type ServerResultsSource = Exclude<ResultProviderName, "mock">;
 
@@ -8,6 +8,7 @@ export interface ServerResultsResponse {
   message: string;
   updatedAt: string;
   results: ActualResult[];
+  meta: ResultsMeta;
 }
 
 export interface ServerProviderResult {

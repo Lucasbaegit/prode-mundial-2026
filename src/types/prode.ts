@@ -60,6 +60,20 @@ export interface ActualResult {
   provider?: ResultProviderName;
 }
 
+export interface ResultsMeta {
+  totalMatches: number;
+  realResultsCount: number;
+  finishedCount: number;
+  liveCount: number;
+  scheduledCount: number;
+  pendingWithoutRealDataCount: number;
+  provider: Exclude<ResultProviderName, "mock">;
+  cacheHit: boolean;
+  cacheAgeSeconds: number | null;
+  cacheTtlSeconds: number;
+  fetchedFromProvider: boolean;
+}
+
 export interface MatchScore {
   matchId: string;
   prediction: Prediction;
@@ -123,4 +137,5 @@ export interface ResultsLoadState {
   error?: string;
   updatedAt: string;
   canPoll: boolean;
+  meta?: ResultsMeta;
 }

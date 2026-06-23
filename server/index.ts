@@ -1,6 +1,8 @@
 import express from "express";
 import { loadEnvLocal } from "./utils/env";
 import { getResultsResponse } from "./resultsPipeline";
+import { getResultsCacheTtlSeconds } from "./utils/resultsCache";
+import { buildResultsMeta } from "./utils/resultsMeta";
 
 loadEnvLocal();
 
@@ -20,16 +22,26 @@ app.get("/api/health", (_request, response) => {
 
 app.get("/api/results", async (_request, response) => {
   try {
-    const payload = await getResultsResponse();
+    const forceRefresh = _request.query.refresh === "true";
+    const payload = await getResultsResponse({ forceRefresh });
     response.json(payload);
   } catch (error) {
     console.error(error instanceof Error ? error.message : error);
+    const results = [];
     response.status(500).json({
       source: "pending",
       status: "error",
       message: "Error interno del backend local.",
       updatedAt: new Date().toISOString(),
-      results: []
+      results,
+      meta: buildResultsMeta({
+        source: "pending",
+        results,
+        cacheHit: false,
+        cacheAgeSeconds: null,
+        cacheTtlSeconds: getResultsCacheTtlSeconds(),
+        fetchedFromProvider: false
+      })
     });
   }
 });
